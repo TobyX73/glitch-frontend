@@ -55,5 +55,33 @@
     "price": "$20.500,00",
     "image": "https://picsum.photos/id/237/200/200",
     "stock": 6
+  },
+  {
+    "id": 9,
+    "title": "Remera Naranja Oversize",
+    "price": "$24.000,00",
+    "image": "https://picsum.photos/id/238/200/200",
+    "stock": 15
+  },
+  {
+    "id": 10,
+    "title": "Remera Rosa Estampada",
+    "price": "$26.500,00",
+    "image": "https://picsum.photos/id/239/200/200",
+    "stock": 8
+  },
+  {
+    "id": 11,
+    "title": "Remera Celeste Vintage",
+    "price": "$27.000,00",
+    "image": "https://picsum.photos/id/240/200/200",
+    "stock": 4
+  },
+  {
+    "id": 12,
+    "title": "Remera Beige Premium",
+    "price": "$30.000,00",
+    "image": "https://picsum.photos/id/241/200/200",
+    "stock": 6
   }
 ]
