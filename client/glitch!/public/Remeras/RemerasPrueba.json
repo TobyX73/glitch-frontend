@@ -1,0 +1,59 @@
+
+[
+  {
+    "id": 1,
+    "title": "Remera Roja",
+    "price": "$20.000,00",
+    "image": "https://picsum.photos/id/237/200/200",
+    "stock": 10
+  },
+  {
+    "id": 2,
+    "title": "Remera Azul",
+    "price": "$22.500,00",
+    "image": "https://picsum.photos/id/237/200/200",
+    "stock": 5
+  },
+  {
+    "id": 3,
+    "title": "Remera Verde",
+    "price": "$18.000,00",
+    "image": "https://picsum.photos/id/237/200/200",
+    "stock": 8
+  },
+  {
+    "id": 4,
+    "title": "Remera Negra",
+    "price": "$25.000,00",
+    "image": "https://picsum.photos/id/237/200/200",
+    "stock": 12
+  },
+  {
+    "id": 5,
+    "title": "Remera Blanca",
+    "price": "$19.500,00",
+    "image": "https://picsum.photos/id/237/200/200",
+    "stock": 10
+  },
+  {
+    "id": 6,
+    "title": "Remera Amarilla",
+    "price": "$21.000,00",
+    "image": "https://picsum.photos/id/237/200/200",
+    "stock": 7
+  },
+  {
+    "id": 7,
+    "title": "Remera Violeta",
+    "price": "$23.000,00",
+    "image": "https://picsum.photos/id/237/200/200",
+    "stock": 5
+  },
+  {
+    "id": 8,
+    "title": "Remera Gris",
+    "price": "$20.500,00",
+    "image": "https://picsum.photos/id/237/200/200",
+    "stock": 6
+  }
+]
