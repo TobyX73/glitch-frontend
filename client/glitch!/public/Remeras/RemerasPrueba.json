@@ -83,5 +83,173 @@
     "price": "$30.000,00",
     "image": "https://picsum.photos/id/241/200/200",
     "stock": 6
+  },
+  {
+    "id": 13,
+    "title": "Remera Turquesa Deportiva",
+    "price": "$22.000,00",
+    "image": "https://picsum.photos/id/242/200/200",
+    "stock": 9
+  },
+  {
+    "id": 14,
+    "title": "Remera Coral Tie-Dye",
+    "price": "$28.000,00",
+    "image": "https://picsum.photos/id/243/200/200",
+    "stock": 7
+  },
+  {
+    "id": 15,
+    "title": "Remera Lavanda Minimalista",
+    "price": "$25.500,00",
+    "image": "https://picsum.photos/id/244/200/200",
+    "stock": 11
+  },
+  {
+    "id": 16,
+    "title": "Remera Dorada Limited",
+    "price": "$35.000,00",
+    "image": "https://picsum.photos/id/245/200/200",
+    "stock": 3
+  },
+  {
+    "id": 17,
+    "title": "Remera Índigo Retro",
+    "price": "$26.000,00",
+    "image": "https://picsum.photos/id/246/200/200",
+    "stock": 8
+  },
+  {
+    "id": 18,
+    "title": "Remera Fucsia Neón",
+    "price": "$24.500,00",
+    "image": "https://picsum.photos/id/247/200/200",
+    "stock": 6
+  },
+  {
+    "id": 19,
+    "title": "Remera Caqui Militar",
+    "price": "$23.500,00",
+    "image": "https://picsum.photos/id/248/200/200",
+    "stock": 12
+  },
+  {
+    "id": 20,
+    "title": "Remera Plata Metallic",
+    "price": "$32.000,00",
+    "image": "https://picsum.photos/id/249/200/200",
+    "stock": 5
+  },
+  {
+    "id": 21,
+    "title": "Remera Bordo Clásica",
+    "price": "$21.500,00",
+    "image": "https://picsum.photos/id/250/200/200",
+    "stock": 14
+  },
+  {
+    "id": 22,
+    "title": "Remera Salmón Pastel",
+    "price": "$27.500,00",
+    "image": "https://picsum.photos/id/251/200/200",
+    "stock": 9
+  },
+  {
+    "id": 23,
+    "title": "Remera Verde Oliva",
+    "price": "$22.800,00",
+    "image": "https://picsum.photos/id/252/200/200",
+    "stock": 10
+  },
+  {
+    "id": 24,
+    "title": "Remera Azul Marino",
+    "price": "$24.200,00",
+    "image": "https://picsum.photos/id/253/200/200",
+    "stock": 8
+  },
+  {
+    "id": 25,
+    "title": "Remera Crema Vintage",
+    "price": "$29.000,00",
+    "image": "https://picsum.photos/id/254/200/200",
+    "stock": 6
+  },
+  {
+    "id": 26,
+    "title": "Remera Magenta Brillante",
+    "price": "$26.800,00",
+    "image": "https://picsum.photos/id/255/200/200",
+    "stock": 7
+  },
+  {
+    "id": 27,
+    "title": "Remera Gris Carbón",
+    "price": "$23.000,00",
+    "image": "https://picsum.photos/id/256/200/200",
+    "stock": 13
+  },
+  {
+    "id": 28,
+    "title": "Remera Menta Suave",
+    "price": "$25.200,00",
+    "image": "https://picsum.photos/id/257/200/200",
+    "stock": 9
+  },
+  {
+    "id": 29,
+    "title": "Remera Terracota Artesanal",
+    "price": "$31.000,00",
+    "image": "https://picsum.photos/id/258/200/200",
+    "stock": 4
+  },
+  {
+    "id": 30,
+    "title": "Remera Azul Eléctrico",
+    "price": "$27.200,00",
+    "image": "https://picsum.photos/id/259/200/200",
+    "stock": 8
+  },
+  {
+    "id": 31,
+    "title": "Remera Rosa Pálido",
+    "price": "$24.800,00",
+    "image": "https://picsum.photos/id/260/200/200",
+    "stock": 11
+  },
+  {
+    "id": 32,
+    "title": "Remera Verde Esmeralda",
+    "price": "$28.500,00",
+    "image": "https://picsum.photos/id/261/200/200",
+    "stock": 6
+  },
+  {
+    "id": 33,
+    "title": "Remera Púrpura Real",
+    "price": "$33.000,00",
+    "image": "https://picsum.photos/id/262/200/200",
+    "stock": 5
+  },
+  {
+    "id": 34,
+    "title": "Remera Amarillo Mostaza",
+    "price": "$22.300,00",
+    "image": "https://picsum.photos/id/263/200/200",
+    "stock": 12
+  },
+  {
+    "id": 35,
+    "title": "Remera Gris Perla",
+    "price": "$26.200,00",
+    "image": "https://picsum.photos/id/264/200/200",
+    "stock": 7
+  },
+  {
+    "id": 36,
+    "title": "Remera Negro Intenso",
+    "price": "$29.800,00",
+    "image": "https://picsum.photos/id/265/200/200",
+    "stock": 10
   }
 ]

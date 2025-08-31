@@ -1,10 +1,11 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import Navbar from "./navbar"
 import Footer from "./Footer"
-import { VistaIndexProducto } from "../containers/VistaProducto/VistaIndexProducto"
-import { VistaHome } from "../containers/VistaHome/VistaHome"
-import { VistaCarrito } from "../containers/VistaCarrito/VistaIndex"
-import { VistaClientesIndex } from "../containers/VistaClientes/VistaClientesIndex"
+import VistaIndexProducto from "../containers/VistaProducto/VistaIndexProducto"
+import { VistaHome } from "../containers/VistaHome/VistaIndexHome"
+import { VistaCarrito } from "../containers/VistaCarrito/VistaIndexCarrito"
+import VistaIndexClientes from "../containers/VistaClientes/VistaIndexClientes"
+import VistaProductoParticular from "../containers/VistaProductoParticular/VistaProductoParticular"
 
 function App() {
   return (
@@ -16,7 +17,8 @@ function App() {
             <Route path="/" element={<VistaHome />} />
             <Route path="/productos" element={<VistaIndexProducto />} />
             <Route path="/carrito" element={<VistaCarrito />} />
-            <Route path="/clientes" element={<VistaClientesIndex />} />
+            <Route path="/clientes" element={<VistaIndexClientes />} />
+            <Route path="/producto/:id" element={<VistaProductoParticular />} />
           </Routes>
         </main>
         <Footer />
