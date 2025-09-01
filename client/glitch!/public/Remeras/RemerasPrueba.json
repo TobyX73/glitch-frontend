@@ -5,251 +5,287 @@
     "title": "Remera Roja",
     "price": "$20.000,00",
     "image": "https://picsum.photos/id/237/200/200",
-    "stock": 10
+    "stock": 10,
+    "descripcion": "Remera clásica en color rojo vibrante, confeccionada en 100% algodón premium. Diseño versátil perfecto para uso casual y deportivo. Tela suave al tacto que mantiene su forma y color después de múltiples lavados. Ideal para combinar con cualquier outfit."
   },
   {
     "id": 2,
     "title": "Remera Azul",
     "price": "$22.500,00",
     "image": "https://picsum.photos/id/237/200/200",
-    "stock": 5
+    "stock": 5,
+    "descripcion": "Elegante remera en tono azul marino, fabricada con algodón de alta calidad. Corte moderno que se adapta cómodamente al cuerpo. Perfecta para ocasiones casuales y semi-formales. Material transpirable y resistente que garantiza durabilidad."
   },
   {
     "id": 3,
     "title": "Remera Verde",
     "price": "$18.000,00",
     "image": "https://picsum.photos/id/237/200/200",
-    "stock": 8
+    "stock": 8,
+    "descripcion": "Remera en verde fresco y natural, ideal para looks relajados y urbanos. Confeccionada en algodón orgánico de textura suave. Diseño minimalista que combina comodidad y estilo. Excelente opción para el día a día."
   },
   {
     "id": 4,
     "title": "Remera Negra",
     "price": "$25.000,00",
     "image": "https://picsum.photos/id/237/200/200",
-    "stock": 12
+    "stock": 12,
+    "descripcion": "Icónica remera negra, básico indispensable en cualquier guardarropa. Algodón premium con acabado suave y elegante. Versatilidad máxima para combinar con cualquier prenda. Calidad superior que asegura larga duración y confort."
   },
   {
     "id": 5,
     "title": "Remera Blanca",
     "price": "$19.500,00",
     "image": "https://picsum.photos/id/237/200/200",
-    "stock": 10
+    "stock": 10,
+    "descripcion": "Clásica remera blanca, esencial atemporal de vestir. Algodón puro con tratamiento anti-encogimiento. Perfecta como base para cualquier look o para usar sola. Blancura duradera y suavidad excepcional."
   },
   {
     "id": 6,
     "title": "Remera Amarilla",
     "price": "$21.000,00",
     "image": "https://picsum.photos/id/237/200/200",
-    "stock": 7
+    "stock": 7,
+    "descripcion": "Vibrante remera amarilla que aporta energía y alegría a tu outfit. Confeccionada en algodón de primera calidad. Color brillante y duradero que no se desvanece. Ideal para destacar con estilo y personalidad."
   },
   {
     "id": 7,
     "title": "Remera Violeta",
     "price": "$23.000,00",
     "image": "https://picsum.photos/id/237/200/200",
-    "stock": 5
+    "stock": 5,
+    "descripcion": "Sofisticada remera en tono violeta único y moderno. Material de algodón premium con acabado sedoso. Perfecta para quienes buscan diferenciarse con elegancia. Corte contemporáneo que realza la figura."
   },
   {
     "id": 8,
     "title": "Remera Gris",
     "price": "$20.500,00",
     "image": "https://picsum.photos/id/237/200/200",
-    "stock": 6
+    "stock": 6,
+    "descripcion": "Versátil remera gris, equilibrio perfecto entre casual y formal. Algodón de alta densidad para mayor durabilidad. Color neutro que combina con todo. Comodidad excepcional para uso diario."
   },
   {
     "id": 9,
     "title": "Remera Naranja Oversize",
     "price": "$24.000,00",
     "image": "https://picsum.photos/id/238/200/200",
-    "stock": 15
+    "stock": 15,
+    "descripcion": "Trendy remera naranja con corte oversize para máxima comodidad. Algodón premium extra suave al tacto. Estilo urbano y relajado perfecto para looks casuales. Color vibrante que no pasa desapercibido."
   },
   {
     "id": 10,
     "title": "Remera Rosa Estampada",
     "price": "$26.500,00",
     "image": "https://picsum.photos/id/239/200/200",
-    "stock": 8
+    "stock": 8,
+    "descripcion": "Delicada remera rosa con estampado exclusivo y femenino. Confeccionada en algodón peinado de calidad superior. Diseño único que combina suavidad y estilo. Perfecta para looks románticos y frescos."
   },
   {
     "id": 11,
     "title": "Remera Celeste Vintage",
     "price": "$27.000,00",
     "image": "https://picsum.photos/id/240/200/200",
-    "stock": 4
+    "stock": 4,
+    "descripcion": "Encantadora remera celeste con estilo vintage retro. Algodón envejecido con textura especial. Diseño nostálgico que evoca épocas pasadas. Pieza única para amantes del estilo clásico."
   },
   {
     "id": 12,
     "title": "Remera Beige Premium",
     "price": "$30.000,00",
     "image": "https://picsum.photos/id/241/200/200",
-    "stock": 6
+    "stock": 6,
+    "descripcion": "Exclusiva remera beige de línea premium con acabados de lujo. Algodón egipcio de fibra larga para suavidad superior. Elegancia discreta para ocasiones especiales. Calidad excepcional en cada detalle."
   },
   {
     "id": 13,
     "title": "Remera Turquesa Deportiva",
     "price": "$22.000,00",
     "image": "https://picsum.photos/id/242/200/200",
-    "stock": 9
+    "stock": 9,
+    "descripcion": "Dinámica remera turquesa diseñada para actividad física y uso casual. Mezcla de algodón con fibras deportivas. Tecnología absorbente de humedad. Perfecta para entrenamientos y aventuras al aire libre."
   },
   {
     "id": 14,
     "title": "Remera Coral Tie-Dye",
     "price": "$28.000,00",
     "image": "https://picsum.photos/id/243/200/200",
-    "stock": 7
+    "stock": 7,
+    "descripcion": "Artística remera coral con técnica tie-dye hecha a mano. Cada pieza es única e irrepetible. Algodón orgánico con colores naturales. Expresión de creatividad y estilo bohemio contemporáneo."
   },
   {
     "id": 15,
     "title": "Remera Lavanda Minimalista",
     "price": "$25.500,00",
     "image": "https://picsum.photos/id/244/200/200",
-    "stock": 11
+    "stock": 11,
+    "descripcion": "Serena remera lavanda con diseño minimalista y limpio. Algodón orgánico cultivado sustentablemente. Corte simple que destaca por su elegancia natural. Ideal para quienes valoran la simplicidad sofisticada."
   },
   {
     "id": 16,
     "title": "Remera Dorada Limited",
     "price": "$35.000,00",
     "image": "https://picsum.photos/id/245/200/200",
-    "stock": 3
+    "stock": 3,
+    "descripcion": "Edición limitada en dorado metalizado con brillos sutiles. Algodón premium con hilos especiales entretejidos. Pieza exclusiva para coleccionistas de moda. Lujo y distinción en cada fibra."
   },
   {
     "id": 17,
     "title": "Remera Índigo Retro",
     "price": "$26.000,00",
     "image": "https://picsum.photos/id/246/200/200",
-    "stock": 8
+    "stock": 8,
+    "descripcion": "Nostálgica remera índigo con inspiración retro de los años 80. Algodón stone-washed para textura vintage auténtica. Colores desvanecidos naturalmente. Perfecta para lovers del estilo retro."
   },
   {
     "id": 18,
     "title": "Remera Fucsia Neón",
     "price": "$24.500,00",
     "image": "https://picsum.photos/id/247/200/200",
-    "stock": 6
+    "stock": 6,
+    "descripcion": "Impactante remera fucsia con intensidad neón que llama la atención. Algodón de alta calidad con pigmentos fluorescentes. Perfecta para fiestas y eventos nocturnos. Energía pura en cada hilo."
   },
   {
     "id": 19,
     "title": "Remera Caqui Militar",
     "price": "$23.500,00",
     "image": "https://picsum.photos/id/248/200/200",
-    "stock": 12
+    "stock": 12,
+    "descripcion": "Resistente remera caqui con estilo militar urbano. Algodón reforzado para mayor durabilidad. Diseño funcional inspirado en ropa táctica. Ideal para aventuras y uso rudo diario."
   },
   {
     "id": 20,
     "title": "Remera Plata Metallic",
     "price": "$32.000,00",
     "image": "https://picsum.photos/id/249/200/200",
-    "stock": 5
+    "stock": 5,
+    "descripcion": "Futurista remera plata con acabado metalizado innovador. Algodón con fibras reflectantes entretejidas. Efecto brillante que cambia con la luz. Perfecta para looks vanguardistas y modernos."
   },
   {
     "id": 21,
     "title": "Remera Bordo Clásica",
     "price": "$21.500,00",
     "image": "https://picsum.photos/id/250/200/200",
-    "stock": 14
+    "stock": 14,
+    "descripcion": "Elegante remera bordo con personalidad clásica y atemporal. Algodón peinado de textura refinada. Color sofisticado que aporta distinción. Perfecta para ocasiones que requieren elegancia casual."
   },
   {
     "id": 22,
     "title": "Remera Salmón Pastel",
     "price": "$27.500,00",
     "image": "https://picsum.photos/id/251/200/200",
-    "stock": 9
+    "stock": 9,
+    "descripcion": "Delicada remera salmón en tonos pastel suaves y románticos. Algodón pima de fibra extra larga. Suavidad excepcional y colores sutiles. Ideal para looks femeninos y delicados."
   },
   {
     "id": 23,
     "title": "Remera Verde Oliva",
     "price": "$22.800,00",
     "image": "https://picsum.photos/id/252/200/200",
-    "stock": 10
+    "stock": 10,
+    "descripcion": "Versátil remera verde oliva con carácter natural y urbano. Algodón orgánico cultivado responsablemente. Color terroso que conecta con la naturaleza. Perfecta para estilos eco-friendly y casuales."
   },
   {
     "id": 24,
     "title": "Remera Azul Marino",
     "price": "$24.200,00",
     "image": "https://picsum.photos/id/253/200/200",
-    "stock": 8
+    "stock": 8,
+    "descripcion": "Clásica remera azul marino con elegancia náutica tradicional. Algodón marino resistente al desgaste. Color profundo que transmite confianza y seriedad. Esencial para guardarropas masculinos y femeninos."
   },
   {
     "id": 25,
     "title": "Remera Crema Vintage",
     "price": "$29.000,00",
     "image": "https://picsum.photos/id/254/200/200",
-    "stock": 6
+    "stock": 6,
+    "descripcion": "Sofisticada remera crema con aires vintage y bohemios. Algodón envejecido naturalmente con lavado especial. Textura suave con carácter único. Perfecta para estilos románticos y nostálgicos."
   },
   {
     "id": 26,
     "title": "Remera Magenta Brillante",
     "price": "$26.800,00",
     "image": "https://picsum.photos/id/255/200/200",
-    "stock": 7
+    "stock": 7,
+    "descripcion": "Vibrante remera magenta con intensidad y personalidad arrolladora. Algodón premium con pigmentos de alta fijación. Color que irradia energía y creatividad. Ideal para personalidades audaces y expresivas."
   },
   {
     "id": 27,
     "title": "Remera Gris Carbón",
     "price": "$23.000,00",
     "image": "https://picsum.photos/id/256/200/200",
-    "stock": 13
+    "stock": 13,
+    "descripcion": "Moderna remera gris carbón con elegancia urbana contemporánea. Algodón de alta densidad con tacto sedoso. Color versátil que combina con cualquier outfit. Sofisticación discreta para uso diario."
   },
   {
     "id": 28,
     "title": "Remera Menta Suave",
     "price": "$25.200,00",
     "image": "https://picsum.photos/id/257/200/200",
-    "stock": 9
+    "stock": 9,
+    "descripcion": "Refrescante remera menta con suavidad primaveral y delicada. Algodón orgánico con acabado extra suave. Color que transmite frescura y tranquilidad. Perfecta para días luminosos y looks relajados."
   },
   {
     "id": 29,
     "title": "Remera Terracota Artesanal",
     "price": "$31.000,00",
     "image": "https://picsum.photos/id/258/200/200",
-    "stock": 4
+    "stock": 4,
+    "descripcion": "Única remera terracota con inspiración artesanal y cultural. Algodón teñido con técnicas tradicionales ancestrales. Cada pieza cuenta una historia de tradición. Conexión auténtica con raíces culturales."
   },
   {
     "id": 30,
     "title": "Remera Azul Eléctrico",
     "price": "$27.200,00",
     "image": "https://picsum.photos/id/259/200/200",
-    "stock": 8
+    "stock": 8,
+    "descripcion": "Electrizante remera azul con energía vibrante y moderna. Algodón premium con colores de alta intensidad. Perfecta para destacar en multitudes y eventos. Confianza y dinamismo en cada fibra."
   },
   {
     "id": 31,
     "title": "Remera Rosa Pálido",
     "price": "$24.800,00",
     "image": "https://picsum.photos/id/260/200/200",
-    "stock": 11
+    "stock": 11,
+    "descripcion": "Tierna remera rosa pálido con delicadeza y feminidad natural. Algodón suave como seda al contacto. Color romántico que realza la dulzura personal. Ideal para looks suaves y encantadores."
   },
   {
     "id": 32,
     "title": "Remera Verde Esmeralda",
     "price": "$28.500,00",
     "image": "https://picsum.photos/id/261/200/200",
-    "stock": 6
+    "stock": 6,
+    "descripcion": "Preciosa remera verde esmeralda con brillo natural y elegante. Algodón premium con acabado lustrado sutil. Color joya que aporta lujo y sofisticación. Perfecta para ocasiones especiales."
   },
   {
     "id": 33,
     "title": "Remera Púrpura Real",
     "price": "$33.000,00",
     "image": "https://picsum.photos/id/262/200/200",
-    "stock": 5
+    "stock": 5,
+    "descripcion": "Majestuosa remera púrpura con realeza y distinción imperial. Algodón de calidad real con fibras nobles. Color que simboliza poder y elegancia suprema. Exclusividad para personalidades distinguidas."
   },
   {
     "id": 34,
     "title": "Remera Amarillo Mostaza",
     "price": "$22.300,00",
     "image": "https://picsum.photos/id/263/200/200",
-    "stock": 12
+    "stock": 12,
+    "descripcion": "Cálida remera amarillo mostaza con personalidad otoñal acogedora. Algodón premium con tonos terrosos naturales. Color que transmite calidez y optimismo. Perfecta para estaciones de transición."
   },
   {
     "id": 35,
     "title": "Remera Gris Perla",
     "price": "$26.200,00",
     "image": "https://picsum.photos/id/264/200/200",
-    "stock": 7
+    "stock": 7,
+    "descripcion": "Refinada remera gris perla con brillo nacarado sutil. Algodón premium con hilos especiales entretejidos. Elegancia discreta con toques de sofisticación. Ideal para ocasiones que requieren distinción."
   },
   {
     "id": 36,
     "title": "Remera Negro Intenso",
     "price": "$29.800,00",
     "image": "https://picsum.photos/id/265/200/200",
-    "stock": 10
+    "stock": 10,
+    "descripcion": "Poderosa remera negro intenso con profundidad y carácter absoluto. Algodón premium con negro profundo duradero. Elegancia atemporal que nunca pasa de moda. Esencial para cualquier guardarropa sofisticado."
   }
 ]
