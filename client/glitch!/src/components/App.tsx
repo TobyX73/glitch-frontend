@@ -6,24 +6,27 @@ import { VistaHome } from "../containers/VistaHome/VistaIndexHome"
 import { VistaCarrito } from "../containers/VistaCarrito/VistaIndexCarrito"
 import VistaIndexClientes from "../containers/VistaClientes/VistaIndexClientes"
 import VistaProductoParticular from "../containers/VistaProductoParticular/VistaProductoParticular"
+import { CartProvider } from "../context/CartContext"
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <main className="flex-1">
-          <Routes>
-            <Route path="/" element={<VistaHome />} />
-            <Route path="/productos" element={<VistaIndexProducto />} />
-            <Route path="/carrito" element={<VistaCarrito />} />
-            <Route path="/clientes" element={<VistaIndexClientes />} />
-            <Route path="/producto/:id" element={<VistaProductoParticular />} />
-          </Routes>
-        </main>
-        <Footer />
-      </div>
-    </Router>
+    <CartProvider>
+      <Router>
+        <div className="min-h-screen flex flex-col">
+          <Navbar />
+          <main className="flex-1">
+            <Routes>
+              <Route path="/" element={<VistaHome />} />
+              <Route path="/productos" element={<VistaIndexProducto />} />
+              <Route path="/carrito" element={<VistaCarrito />} />
+              <Route path="/clientes" element={<VistaIndexClientes />} />
+              <Route path="/producto/:id" element={<VistaProductoParticular />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </Router>
+    </CartProvider>
   )
 }
 

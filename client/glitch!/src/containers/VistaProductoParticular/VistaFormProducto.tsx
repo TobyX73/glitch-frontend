@@ -1,12 +1,15 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import RemerasPruebas from '../../../public/Remeras/RemerasPrueba.json';
 import SizeSelector from "../../components/SizeSelector";
 import QuantitySelector from "../../components/QuantitySelector";
 import AddToCartButton from "../../components/AddToCartButton";
+import { useCart } from "../../context/CartContext";
 
 export function VistaFormProducto() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { addItem } = useCart();
   const product = RemerasPruebas.find(item => item.id === parseInt(id || '0'));
 
   const [formData, setFormData] = useState({
@@ -55,28 +58,34 @@ export function VistaFormProducto() {
     setIsSubmitting(true);
     
     try {
-
-      console.log('Agregando al carrito:', {
-        productId: product.id,
+      // Agregar el producto al carrito
+      addItem({
+        id: product.id,
         title: product.title,
         price: product.price,
+        image: product.image,
         size: formData.size,
         quantity: formData.quantity,
-        total: calculateTotal()
+        stock: product.stock
       });
       
+      // Mostrar mensaje de éxito y redirigir
       alert('¡Producto agregado al carrito!');
+      
+      // Opcional: redirigir al carrito
+      const goToCart = window.confirm('¿Quieres ir al carrito?');
+      if (goToCart) {
+        navigate('/carrito');
+      } else {
+        // Resetear formulario
+        setFormData({ size: '', quantity: 1 });
+      }
       
     } catch (error) {
       alert('Error al agregar el producto');
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const calculateTotal = () => {
-    const price = parseFloat(product.price.replace(/[$.,]/g, ''));
-    return price * formData.quantity;
   };
   
   const isFormValid = Boolean(formData.size && formData.quantity > 0 && formData.quantity <= product.stock);
