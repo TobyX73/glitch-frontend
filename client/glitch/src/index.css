@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@theme {
+  --color-verde: #0df39c;
+  --color-gris: #090909;
+  --color-azul-oscuro: #04445c;
+  --color-azul: #041c5c;
+}
+
+@font-face {
+  font-family: 'Hemi Head';
+  src: url('./assets/fonts/Hemi Head Bd It.otf') format('opentype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Josefin Sans';
+  src: url('./assets/fonts/JosefinSans-VariableFont_wght.ttf') format('truetype');
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Josefin Sans Italic';
+  src: url('./assets/fonts/JosefinSans-Italic-VariableFont_wght.ttf') format('truetype');
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Estilos base */
+body {
+  font-family: 'Josefin Sans', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Hemi Head', sans-serif;
+  font-weight: 700;
+  font-style: italic;
+}
