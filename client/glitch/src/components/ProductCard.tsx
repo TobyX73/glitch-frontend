@@ -8,18 +8,30 @@ interface ProductCardProps {
   stock: number;
 }
 
-const ProductCard = ({ id, title, price, image, stock }: ProductCardProps) => {
+const ProductCard = ({ id, title, price, image }: ProductCardProps) => {
     return (
-        <Link to={`/producto/${id}`} className="hover:scale-105 transition-transform duration-200">
-            <article className="bg-blue-300 rounded-3xl flex flex-col items-center p-4 w-64 max-w-sm mx-auto cursor-pointer">
-                <img 
-                    className="w-48 h-48 object-cover mb-4 rounded-lg" 
-                    src={image} 
-                    alt={title} 
-                />
-                <h3 className="text-lg font-bold text-center">{title}</h3>
-                <p className="text-xl font-semibold">{price}</p>
-                <p className="text-sm">Stock: {stock}</p>
+        <Link to={`/producto/${id}`}>
+            <article className="flex flex-col items-center w-72 max-w-sm mx-auto cursor-pointer gap-6">
+                <div 
+                    className="relative w-full aspect-square rounded-2xl overflow-hidden"
+                    style={{
+                        backgroundImage: `url('/patron-fondo-glitch.svg')`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        backgroundColor: '#6B7280'
+                    }}
+                >
+                    <img 
+                        className="w-full h-full object-contain transition-transform duration-300 hover:scale-110" 
+                        src={image} 
+                        alt={title} 
+                    />
+                </div>
+
+                <div className="w-full text-white">
+                    <p className="text-base font-semibold text-left mb-1">{title}</p>
+                    <p className="">{price}</p>
+                </div>
             </article>
         </Link>
     )

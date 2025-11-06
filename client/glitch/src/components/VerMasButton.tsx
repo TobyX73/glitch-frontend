@@ -3,9 +3,9 @@ import { Link } from "react-router-dom"
 const VerMasButton = () => {
 
     return(
-        <button className="bg-[--color-spring-green] text-white hover:bg-blue-600 w-32 h-10 rounded-lg flex justify-center items-center my-3">
+        <button className="bg-gris text-verde hover:bg-verde hover:text-gris transition-colors duration-300 border-verde border-2 w-40 h-10 flex justify-center items-center my-3 text-lg font-medium">
             <Link to="/productos">
-                <p> Ver mas</p>
+                <h1> Ver más</h1>
             </Link>            
         </button>
     )

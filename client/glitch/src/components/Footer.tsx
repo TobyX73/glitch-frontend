@@ -1,7 +1,7 @@
 
 const Footer = () => {
     return(
-        <footer className="bg-gris text-white py-12">
+        <footer className="bg-azul text-white py-12">
             <div className="max-w-7xl mx-auto px-8">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
 
@@ -36,7 +36,7 @@ const Footer = () => {
                     </div>
                 </div>
 
-                <div className="border-t border-gray-700 pt-6 text-center">
+                <div className="border-t border-white pt-6 text-center">
                     <p className="text-sm">
                         GLITCHURBANSTORE.COM. ALL RIGHTS RESERVED
                     </p>

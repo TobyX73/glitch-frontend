@@ -2,14 +2,14 @@ import ProductCard from "./ProductCard"
 import RemerasPruebas from '../../public/Remeras/RemerasPrueba.json'
 
 const ProductList = () => {
-const displayedCount = 12
+const displayedCount = 4
 //Con esta linea declaro que solo va a mostrar hasta 12 objetos.
 const visibleProducts = RemerasPruebas.slice(0, displayedCount);
 
     return (
-        <section className="min-hv-screen p-6 flex justify-center">
-            <div className="max-w-6xl w-full">
-                <div className="grid grid-cols-4 gap-8 mb-8">
+        <section className="}p-6 flex justify-center">
+            <div className="w-full">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                  {visibleProducts.map((item) => (  
                     <ProductCard 
                         key={item.id}
