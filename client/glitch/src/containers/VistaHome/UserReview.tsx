@@ -1,18 +1,16 @@
 import { motion } from 'framer-motion';
 
 const UserReview = () => {
-  // URL de Instagram de Glitch
-  const instagramUrl = "https://www.instagram.com/glitch"; // Reemplaza con tu usuario real
+  const instagramUrl = "https://www.instagram.com/stories/highlights/18058603493564156/?hl=es";
 
   return (
-    <section className="w-full bg-gris py-16">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Grid: Texto a la izquierda, Fotos a la derecha */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+    <section className="w-full bg-gris h-screen flex items-center">
+      <div className="max-w-7xl mx-auto px-4 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center h-full">
           
-          {/* Texto a la izquierda */}
+
           <div className="text-white space-y-6">
-            {/* Estrellas */}
+
             <div className="flex gap-1">
               {[...Array(5)].map((_, i) => (
                 <svg
@@ -26,54 +24,52 @@ const UserReview = () => {
               ))}
             </div>
 
-            {/* Título */}
+
             <h2 className="text-5xl font-bold italic">
-              Más de 15.000 clientes felices
+              Más de 50 clientes contentos
             </h2>
 
-            {/* Frase de marketing */}
+
             <p className="text-2xl text-gray-300 italic">
-              Nuestro mejor marketing sos vos 😉
+              Agradecidos siempre con ustedes 🙌
             </p>
 
-            {/* Botón a Instagram */}
             <a 
               href={instagramUrl}
               target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-verde text-gris px-8 py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+              className="inline-block bg-gris text-verde hover:bg-verde hover:text-gris transition-colors duration-300 border-verde border-2 px-8 py-3 font-bold text-lg"
             >
-              ver fotos reales 📸
+              <h1> Ver fotos reales 📸 </h1>
             </a>
           </div>
 
-          {/* Fotos a la derecha con animación */}
-          <div className="flex justify-center lg:justify-start gap-4">
+          {/* Fotos a la derecha - 2 fotos superpuestas */}
+          <div className="flex items-center justify-center">
             {/* Foto 1 */}
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6, ease: "easeOut" }}
-              className="w-64 h-80 rounded-3xl overflow-hidden shadow-2xl"
+              className="w-72 h-96 rounded-3xl overflow-hidden shadow-2xl z-20"
             >
               <img 
-                src="https://picsum.photos/400/600?random=10"
+                src="https://picsum.photos/450/600?random=10"
                 alt="Cliente Glitch 1"
                 className="w-full h-full object-cover"
               />
             </motion.div>
 
-            {/* Foto 2 */}
+            {/* Foto 2 - Superpuesta con margen negativo */}
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
-              className="w-64 h-80 rounded-3xl overflow-hidden shadow-2xl mt-8"
+              className="w-72 h-96 rounded-3xl overflow-hidden shadow-2xl -ml-16 mt-12 z-10"
             >
               <img 
-                src="https://picsum.photos/400/600?random=11"
+                src="https://picsum.photos/450/600?random=11"
                 alt="Cliente Glitch 2"
                 className="w-full h-full object-cover"
               />
