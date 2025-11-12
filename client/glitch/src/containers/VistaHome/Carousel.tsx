@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 
 const Carousel = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -61,49 +62,77 @@ const Carousel = () => {
                 }}
               />
             )}
-            
             {/* Contenido principal */}
             <div className="relative z-10 w-full h-full px-16">
               {/* Grid Layout con posiciones específicas */}
               <div className="grid grid-cols-12 grid-rows-12 h-full">
                 {/* Logo en la parte superior izquierda */}
-                <div className="col-start-1 col-span-5 row-start-3 row-span-2 flex items-center">
+                <motion.div 
+                  className="col-start-1 col-span-5 row-start-3 row-span-2 flex items-center"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                >
                   <img 
                     src="/logo-entero.svg" 
                     alt="Glitch Logo" 
                     className="w-full max-w-[500px]"
                   />
-                </div>
+                </motion.div>
                 
-                <div className="col-start-6 col-span-2 row-start-4 row-span-4 flex items-center justify-end">
+                <motion.div 
+                  className="col-start-6 col-span-2 row-start-4 row-span-4 flex items-center justify-end"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+                >
                   <h2 className="text-7xl font-bold text-white italic">
                     your
                   </h2>
-                </div>
+                </motion.div>
                 
-                <div className="col-start-7 col-span-5 row-start-7 row-span-3 flex items-start justify-end">
+                <motion.div 
+                  className="col-start-7 col-span-5 row-start-7 row-span-3 flex items-start justify-end"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+                >
                   <h2 className="text-7xl font-bold text-white italic">
                     style
                   </h2>
-                </div>
+                </motion.div>
                 
-                <div className="col-start-5 col-span-4 row-start-9 row-span-1 flex items-center justify-center">
+                <motion.div 
+                  className="col-start-5 col-span-4 row-start-9 row-span-1 flex items-center justify-center"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
+                >
                   <button 
                     onClick={scrollToProducts}
                     className="text-verde text-2xl font-bold italic transition-transform duration-300 hover:scale-105 cursor-pointer"
                   >
                     <h1>Comprá ahora</h1>
                   </button>
-                </div>
+                </motion.div>
                 
-                <div className="col-start-5 col-span-4 row-start-10 row-span-1 flex items-start justify-center mt-6">
+                <motion.div 
+                  className="col-start-5 col-span-4 row-start-10 row-span-1 flex items-start justify-center mt-6"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ 
+                    duration: 1.2, 
+                    delay: 0.8, 
+                    ease: "easeOut"
+                  }}
+                >
                   <img 
                     src="/flecha-abajo.svg" 
                     alt="Flecha abajo" 
                     className="w-12 h-12 animate-bounce cursor-pointer"
                     onClick={scrollToProducts}
                   />
-                </div>
+                </motion.div>
               </div>
             </div>
           </div>

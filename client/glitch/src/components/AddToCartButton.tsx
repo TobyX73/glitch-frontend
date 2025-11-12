@@ -8,25 +8,24 @@ export function AddToCartButton({ isValid, isSubmitting, stock }: AddToCartButto
   const getButtonText = () => {
     if (isSubmitting) return 'AGREGANDO...';
     if (stock === 0) return 'SIN STOCK';
-    if (!isValid) return 'AGREGAR AL CARRITO';
-    return 'AGREGAR AL CARRITO';
+    return 'Agregar al carrito';
   };
 
   const getButtonStyles = () => {
      if (stock === 0) 
         return 'bg-red-500 text-white cursor-not-allowed';
      if (!isValid || isSubmitting) 
-        return 'bg-gray-300 text-gray-500 cursor-not-allowed';
-    return 'bg-blue-500 text-white hover:bg-blue-600';
+        return 'bg-gray-600 text-gray-400 cursor-not-allowed';
+    return 'bg-gris text-verde border-2 border-verde hover:bg-verde hover:text-gris cursor-pointer';
   };
 
   return (
     <button
       type="submit"
       disabled={!isValid || isSubmitting || stock === 0}
-      className={`w-full py-4 px-6 rounded-lg font-bold text-sm transition-colors ${getButtonStyles()}`}
+      className={`w-80 h-12 px-6 mt-5 font-bold text-lg transition-all duration-300 italic ${getButtonStyles()}`}
     >
-      {getButtonText()}
+      <h1>{getButtonText()}</h1>
     </button>
   );
 }

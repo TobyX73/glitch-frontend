@@ -1,54 +1,110 @@
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import RemerasPruebas from '../../../public/Remeras/RemerasPrueba.json';
-import VistaFormProducto from "./VistaFormProducto";
+import ImageGallery from "./ImageGallery";
+import ProductInfo from "./ProductInfo";
+import SizeSelector from "./SizeSelector";
+import QuantitySelector from "../../components/QuantitySelector";
+import AddToCartButton from "../../components/AddToCartButton";
+import ShippingCalculator from "./ShippingCalculator";
 
 const VistaProductoParticular = () => {
   const { id } = useParams();
   const product = RemerasPruebas.find(item => item.id === parseInt(id || '0'));
 
+  const [selectedSize, setSelectedSize] = useState('M');
+  const [quantity, setQuantity] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   if (!product) {
     return (
-      <div className="container mx-auto px-4 py-8 text-center">
-        <h1 className="text-2xl font-bold">Producto no encontrado</h1>
+      <div className="min-h-screen bg-gris flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-verde mb-4">Producto no encontrado</h1>
+          <p className="text-gray-400">El producto que buscas no existe.</p>
+        </div>
       </div>
     );
   }
 
-  return (
-    <div className="mx-auto px-4 py-14 max-w-6xl">
-      <section className="grid grid-cols-2 gap-12">
-           <div className="flex flex-col items-center">
-             <div className="mb-6">
-               <img 
-                 src={product.image} 
-                 alt={product.title}
-                 className="w-96 h-96 object-cover rounded-lg shadow-lg"
-               />
-             </div>
-             
-             <div className="bg-gray-50 p-4 rounded-lg">
-               <h3 className="font-semibold text-lg mb-3">Descripción</h3>
-               <p className="text-gray-700 text-sm leading-relaxed">
-                 {product.descripcion}
-               </p>
-             </div>
-           </div>
+  const handleQuantityChange = (newQuantity: number) => {
+    if (newQuantity >= 1 && newQuantity <= product.stock) {
+      setQuantity(newQuantity);
+    }
+  };
 
-           <div className="flex flex-col">
-             <div className="mb-6">
-               <h1 className="text-3xl font-bol mb-4">
-                 {product.title}
-               </h1>
-               <div className="text-3xl font-bold mb-4">
-                 {product.price}
-               </div>
-             </div>
-   
-             <VistaFormProducto/>
-           </div>
-      </section>
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    
+    // Simulación de agregar al carrito
+    console.log('Agregando al carrito:', {
+      product: product.title,
+      size: selectedSize,
+      quantity
+    });
+
+    setTimeout(() => {
+      setIsSubmitting(false);
+      // Aquí conectarás con el contexto del carrito
+    }, 1000);
+  };
+
+  const isValid = selectedSize !== '' && quantity > 0 && quantity <= product.stock;
+
+  return (
+    <div className="min-h-screen bg-gris pt-24 pb-16">
+      <div className="max-w-7xl mx-auto px-8">
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            
+            {/* Columna Izquierda - Galería */}
+            <div>
+              <ImageGallery 
+                productId={product.id} 
+                productName={product.title} 
+              />
+            </div>
+
+            {/* Columna Derecha - Información */}
+            <div className="flex flex-col">
+              <ProductInfo
+                title={product.title}
+                price={product.price}
+                description={product.descripcion}
+              />
+
+              <SizeSelector
+                selectedSize={selectedSize}
+                onSizeChange={setSelectedSize}
+              />
+
+              <div className="flex items-center gap-4">
+                <QuantitySelector
+                  quantity={quantity}
+                  maxQuantity={product.stock}
+                  stock={product.stock}
+                  onQuantityChange={handleQuantityChange}
+                />
+  
+                <AddToCartButton
+                  isValid={isValid}
+                  isSubmitting={isSubmitting}
+                  stock={product.stock}
+                />
+              </div>
+              
+              <ShippingCalculator />
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
 
-export default VistaProductoParticular
+export default VistaProductoParticular;

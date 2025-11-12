@@ -9,13 +9,13 @@ interface QuantitySelectorProps {
 export function QuantitySelector({ quantity, maxQuantity, onQuantityChange, error }: QuantitySelectorProps) {
   return (
     <div className="mb-6">
-      <label className="block text-sm font-medium mb-2">Cantidad</label>
-      <div className="flex items-center gap-0 w-32">
+      <label className="block text-white font-semibold mb-3">Cantidad</label>
+      <div className="flex items-center gap-0 w-32 mt-5">
         <button
           type="button"
           onClick={() => onQuantityChange(quantity - 1)}
           disabled={quantity <= 1}
-          className="w-10 h-10 border border-gray-300 rounded-l bg-white disabled:opacity-50 hover:bg-gray-50 flex items-center justify-center"
+          className="w-10 h-11 border-2 border-white bg-gris text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-verde hover:text-gris transition-all flex items-center justify-center font-bold cursor-pointer"
         >
           −
         </button>
@@ -26,7 +26,7 @@ export function QuantitySelector({ quantity, maxQuantity, onQuantityChange, erro
           max={maxQuantity}
           value={quantity}
           onChange={(e) => onQuantityChange(parseInt(e.target.value) || 1)}
-          className="w-12 h-10 text-center border-t border-b border-gray-300 bg-white"
+          className="w-12 h-11 text-center border-t-2 border-b-2 border-white bg-gris text-white font-semibold flex items-center justify-center"
           readOnly
         />
         
@@ -34,7 +34,7 @@ export function QuantitySelector({ quantity, maxQuantity, onQuantityChange, erro
           type="button"
           onClick={() => onQuantityChange(quantity + 1)}
           disabled={quantity >= maxQuantity}
-          className="w-10 h-10 border border-gray-300 rounded-r bg-white disabled:opacity-50 hover:bg-gray-50 flex items-center justify-center"
+          className="w-10 h-11 border-2 border-white bg-gris text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-verde hover:text-gris transition-all flex items-center justify-center font-bold cursor-pointer"
         >
           +
         </button>
