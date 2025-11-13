@@ -59,15 +59,15 @@ const ImageGallery = ({ productId, productName }: ImageGalleryProps) => {
         freeMode={true}
         watchSlidesProgress={true}
         modules={[FreeMode, Navigation, Thumbs]}
-        className="w-full h-20"
+        className="w-96 h-20"
       >
         {images.map((image) => (
           <SwiperSlide key={image.id} className="cursor-pointer h-20">
-            <div className="w-full h-20 bg-gray-200 rounded overflow-hidden hover:ring-2 hover:ring-verde transition-all">
+            <div className="w-20 h-20 bg-gray-200 overflow-hidden hover:ring-2 hover:ring-verde transition-all">
               <img
                 src={image.thumbnail}
                 alt={image.alt}
-                className="w-full h-full object-cover"
+                className="w-20 h-20 object-cover"
               />
             </div>
           </SwiperSlide>

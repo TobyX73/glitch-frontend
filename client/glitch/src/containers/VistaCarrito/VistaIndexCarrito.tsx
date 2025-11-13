@@ -1,144 +1,119 @@
-import { useCart } from "../../context/CartContext";
-import type { CartItem } from "../../context/CartContext";
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useCart } from '../../context/CartContext';
+import CartItem from './CartItem';
+import CartSummary from './CartSummary';
+import ShippingCalculator from './ShippingCalculator';
+import DiscountCoupon from './DiscountCoupon';
 
-function VistaCarrito() {
-  const { state, removeItem, updateQuantity, clearCart, getTotalPrice } = useCart();
-
-  const handleQuantityChange = (item: CartItem, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeItem(item.id, item.size);
-    } else {
-      updateQuantity(item.id, item.size, newQuantity);
-    }
-  };
-
-  const formatPrice = (price: string) => {
-    return price;
-  };
-
-  const formatTotalPrice = (totalPrice: number) => {
-    return new Intl.NumberFormat('es-AR', {
-      style: 'currency',
-      currency: 'ARS',
-      minimumFractionDigits: 0,
-    }).format(totalPrice);
-  };
-
-  if (state.items.length === 0) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Carrito de Compras</h1>
-        <div className="text-center py-12">
-          <div className="text-gray-500 text-lg mb-4">Tu carrito está vacío</div>
-          <a 
-            href="/productos" 
-            className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Ver productos
-          </a>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Carrito de Compras</h1>
-        <button
-          onClick={clearCart}
-          className="text-red-600 hover:text-red-800 text-sm font-medium"
-        >
-          Vaciar carrito
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Lista de productos */}
-        <div className="lg:col-span-2">
-          <div className="space-y-4">
-            {state.items.map((item) => (
-              <div key={`${item.id}-${item.size}`} className="bg-white rounded-lg shadow-md p-6">
-                <div className="flex items-center space-x-4">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-20 h-20 object-cover rounded-md"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{item.title}</h3>
-                    <p className="text-gray-600">Talle: {item.size}</p>
-                    <p className="text-lg font-bold text-blue-600">{formatPrice(item.price)}</p>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3">
-                    <button
-                      onClick={() => handleQuantityChange(item, item.quantity - 1)}
-                      className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100"
-                    >
-                      -
-                    </button>
-                    <span className="w-8 text-center font-medium">{item.quantity}</span>
-                    <button
-                      onClick={() => handleQuantityChange(item, item.quantity + 1)}
-                      disabled={item.quantity >= item.stock}
-                      className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      +
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={() => removeItem(item.id, item.size)}
-                    className="text-red-600 hover:text-red-800 p-2"
-                  >
-                    🗑️
-                  </button>
-                </div>
-
-                {item.quantity >= item.stock && (
-                  <div className="mt-2 text-sm text-amber-600">
-                    Stock máximo alcanzado ({item.stock} disponibles)
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Resumen del pedido */}
-        <div className="lg:col-span-1">
-          <div className="bg-gray-50 rounded-lg p-6 sticky top-4">
-            <h2 className="text-xl font-bold mb-4">Resumen del pedido</h2>
-            
-            <div className="space-y-3 mb-4">
-              <div className="flex justify-between">
-                <span>Productos ({state.totalItems})</span>
-                <span>{formatTotalPrice(getTotalPrice())}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Envío</span>
-                <span className="text-green-600">Gratis</span>
-              </div>
-              <hr className="border-gray-300" />
-              <div className="flex justify-between text-lg font-bold">
-                <span>Total</span>
-                <span>{formatTotalPrice(getTotalPrice())}</span>
-              </div>
-            </div>
-
-            <button className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors">
-              Proceder al pago
-            </button>
-
-            <button className="w-full mt-3 border border-gray-300 text-gray-700 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors">
-              Seguir comprando
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+interface VistaIndexCarritoProps {
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export { VistaCarrito }
+const VistaIndexCarrito = ({ isOpen, onClose }: VistaIndexCarritoProps) => {
+  const { state, updateQuantity, removeItem } = useCart();
+  const [shippingCost, setShippingCost] = useState<number>(0);
+  const [discount, setDiscount] = useState<number>(0);
+
+  const handleShippingCalculate = (postalCode: string) => {
+    console.log('Calculando env�o para:', postalCode);
+    setShippingCost(2000);
+  };
+
+  const handleCouponApply = (coupon: string) => {
+    console.log('Aplicando cup�n:', coupon);
+    setDiscount(5000);
+  };
+
+  const handleCheckout = () => {
+    console.log('Finalizando compra...');
+  };
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.6 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={onClose}
+            className="fixed inset-0 bg-black z-40"
+          />
+
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'tween', duration: 0.3 }}
+            className="fixed top-0 right-0 h-full w-full max-w-md bg-gris z-50 shadow-2xl flex flex-col"
+          >
+            <div className="flex items-center justify-between p-6 border-b border-gray-700">
+              <h2 className="text-white text-xl font-bold">Mi carrito</h2>
+              <button
+                onClick={onClose}
+                className="text-white hover:text-verde transition-colors text-2xl cursor-pointer"
+              >
+                
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-6">
+              {state.items.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <p className="text-gray-400 text-center">Tu carrito está vacío</p>
+                </div>
+              ) : (
+                <>
+                  <div className="py-4">
+                    {state.items.map((item) => (
+                      <CartItem
+                        key={`${item.id}-${item.size}`}
+                        item={item}
+                        onUpdateQuantity={(quantity) => updateQuantity(item.id, item.size, quantity)}
+                        onRemove={() => removeItem(item.id, item.size)}
+                      />
+                    ))}
+                  </div>
+
+                  <div className="border-t border-gray-700 pt-4">
+                    <CartSummary subtotal={state.totalPrice} />
+                  </div>
+
+                  <ShippingCalculator onCalculate={handleShippingCalculate} />
+
+                  <DiscountCoupon onApply={handleCouponApply} />
+
+                  {(shippingCost > 0 || discount > 0) && (
+                    <div className="py-4">
+                      <CartSummary
+                        subtotal={state.totalPrice}
+                        shippingCost={shippingCost}
+                        discount={discount}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            {state.items.length > 0 && (
+              <div className="p-6 border-t border-gray-700">
+                <button
+                  onClick={handleCheckout}
+                  className="w-full py-3 text-xl bg-gris border-2 border-verde text-verde font-semibold hover:bg-verde hover:text-gris transition-all cursor-pointer"
+                >
+                  <h1>Finalizar compra</h1>
+                </button>
+              </div>
+            )}
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+};
+
+export default VistaIndexCarrito;

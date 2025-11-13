@@ -38,7 +38,7 @@ const OrderBy = ({ sortBy, onSortChange }: OrderByProps) => {
     <div ref={dropdownRef} className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full bg-azul-oscuro text-white px-4 py-3 rounded-lg flex items-center justify-between hover:bg-opacity-80 transition-all duration-200"
+        className="w-full border-2 border-verde text-white px-4 py-3 flex items-center justify-between hover:bg-opacity-80 transition-all duration-200"
       >
         <div className="flex flex-col items-start">
           <span className="text-verde text-xs font-semibold uppercase tracking-wide">

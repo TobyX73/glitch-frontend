@@ -3,7 +3,6 @@ import Navbar from "./navbar"
 import Footer from "./Footer"
 import VistaIndexProducto from "../containers/VistaProducto/VistaIndexProducto"
 import { VistaHome } from "../containers/VistaHome/VistaIndexHome"
-import { VistaCarrito } from "../containers/VistaCarrito/VistaIndexCarrito"
 import VistaIndexClientes from "../containers/VistaClientes/VistaIndexClientes"
 import VistaProductoParticular from "../containers/VistaProductoParticular/VistaProductoParticular"
 import { CartProvider } from "../context/CartContext"
@@ -18,7 +17,6 @@ function App() {
             <Routes>
               <Route path="/" element={<VistaHome />} />
               <Route path="/productos" element={<VistaIndexProducto />} />
-              <Route path="/carrito" element={<VistaCarrito />} />
               <Route path="/clientes" element={<VistaIndexClientes />} />
               <Route path="/producto/:id" element={<VistaProductoParticular />} />
             </Routes>

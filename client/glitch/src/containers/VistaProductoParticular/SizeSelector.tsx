@@ -17,7 +17,7 @@ const SizeSelector = ({ selectedSize, onSizeChange }: SizeSelectorProps) => {
             key={size}
             type="button"
             onClick={() => onSizeChange(size)}
-            className={`w-10 h-10 border-2 rounded font-semibold transition-all duration-200 cursor-pointer ${
+            className={`w-10 h-10 border-2 font-semibold transition-all duration-200 cursor-pointer ${
               selectedSize === size
                 ? 'border-verde bg-verde text-gris'
                 : 'border-white text-white hover:border-verde hover:text-verde'

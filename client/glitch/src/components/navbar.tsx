@@ -1,12 +1,16 @@
+import { useState } from "react"
 import { Link } from "react-router-dom"
 import { useCart } from "../context/CartContext"
+import VistaIndexCarrito from "../containers/VistaCarrito/VistaIndexCarrito"
 
 function Navbar(){
   const { getTotalItems } = useCart();
   const totalItems = getTotalItems();
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   return (
-    <nav className="relative flex bg-azul text-verde justify-between items-center px-8 py-6">
+    <>
+      <nav className="relative flex bg-azul text-verde justify-between items-center px-8 py-6">
 
       <div className="flex gap-6 items-center z-10">
         <Link 
@@ -37,9 +41,10 @@ function Navbar(){
       </Link>
       
       <div className="flex items-center gap-6 z-10">
-        <Link 
-          to="/carrito" 
-          className="transition-transform duration-300 hover:text-white flex items-center gap-2 hover:scale-105">
+        <button
+          onClick={() => setIsCartOpen(true)}
+          className="transition-transform duration-300 hover:text-white flex items-center gap-2 hover:scale-105 cursor-pointer bg-transparent border-none"
+        >
           <img 
             src="/carrito.svg" 
             alt="icono-carrito" 
@@ -48,7 +53,7 @@ function Navbar(){
           {totalItems > 0 && (
             <span className="font-semibold">{totalItems}</span>
           )}
-        </Link>
+        </button>
 
         <Link 
           to="/login" 
@@ -62,6 +67,13 @@ function Navbar(){
         </Link>
       </div>
     </nav>
+
+    {/* Sidebar del carrito */}
+    <VistaIndexCarrito 
+      isOpen={isCartOpen} 
+      onClose={() => setIsCartOpen(false)} 
+    />
+  </>
   )
 }
 

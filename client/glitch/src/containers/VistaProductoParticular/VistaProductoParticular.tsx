@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { useCart } from "../../context/CartContext";
 import RemerasPruebas from '../../../public/Remeras/RemerasPrueba.json';
 import ImageGallery from "./ImageGallery";
 import ProductInfo from "./ProductInfo";
@@ -10,6 +11,7 @@ import ShippingCalculator from "./ShippingCalculator";
 
 const VistaProductoParticular = () => {
   const { id } = useParams();
+  const { addItem } = useCart();
   const product = RemerasPruebas.find(item => item.id === parseInt(id || '0'));
 
   const [selectedSize, setSelectedSize] = useState('M');
@@ -41,17 +43,22 @@ const VistaProductoParticular = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulación de agregar al carrito
-    console.log('Agregando al carrito:', {
-      product: product.title,
+    // Agregar producto al carrito
+    addItem({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      image: product.image,
       size: selectedSize,
-      quantity
+      quantity: quantity,
+      stock: product.stock
     });
 
     setTimeout(() => {
       setIsSubmitting(false);
-      // Aquí conectarás con el contexto del carrito
-    }, 1000);
+      // Mostrar notificación o feedback visual (opcional)
+      console.log('Producto agregado al carrito exitosamente');
+    }, 500);
   };
 
   const isValid = selectedSize !== '' && quantity > 0 && quantity <= product.stock;

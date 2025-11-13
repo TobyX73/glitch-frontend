@@ -16,7 +16,7 @@ const Filters = ({
   return (
     <aside className="space-y-6">
       {/* Filtro: Colores */}
-      <div className="bg-azul-oscuro p-4 rounded-lg">
+      <div className="p-4 border-2 border-verde">
         <h3 className="text-verde font-semibold mb-3 text-lg">Colores</h3>
         <div className="space-y-3">
           {["Negra", "Blanca"].map((color) => (
@@ -31,7 +31,7 @@ const Filters = ({
       </div>
 
       {/* Filtro: Corte de remera */}
-      <div className="bg-azul-oscuro p-4 rounded-lg">
+      <div className="p-4 border-2 border-verde">
         <h3 className="text-verde font-semibold mb-3 text-lg">Corte de remera</h3>
         <div className="space-y-3">
           {["Clásica", "Oversize"].map((corte) => (
@@ -46,7 +46,7 @@ const Filters = ({
       </div>
 
       {/* Filtro: Categorías */}
-      <div className="bg-azul-oscuro p-4 rounded-lg">
+      <div className="p-4 border-2 border-verde">
         <h3 className="text-verde font-semibold mb-3 text-lg">Categorías</h3>
         <div className="space-y-3">
           {["Remera", "Pantalón"].map((categoria) => (
