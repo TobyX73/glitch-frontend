@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCart } from '../../context/CartContext';
 import CartItem from './CartItem';
@@ -12,22 +13,24 @@ interface VistaIndexCarritoProps {
 }
 
 const VistaIndexCarrito = ({ isOpen, onClose }: VistaIndexCarritoProps) => {
+  const navigate = useNavigate();
   const { state, updateQuantity, removeItem } = useCart();
   const [shippingCost, setShippingCost] = useState<number>(0);
   const [discount, setDiscount] = useState<number>(0);
 
   const handleShippingCalculate = (postalCode: string) => {
-    console.log('Calculando env�o para:', postalCode);
+    console.log('Calculando envío para:', postalCode);
     setShippingCost(2000);
   };
 
   const handleCouponApply = (coupon: string) => {
-    console.log('Aplicando cup�n:', coupon);
+    console.log('Aplicando cupón:', coupon);
     setDiscount(5000);
   };
 
   const handleCheckout = () => {
-    console.log('Finalizando compra...');
+    onClose(); // Cerrar el sidebar
+    navigate('/checkout'); // Redirigir al checkout
   };
 
   return (
