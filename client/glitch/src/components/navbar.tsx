@@ -19,7 +19,7 @@ function Navbar(){
           Productos
         </Link>
         <Link 
-          to="/clientes" 
+          to="/contacto" 
           className="transition-transform duration-300 hover:text-white font- hover:scale-105">
           Contáctanos
         </Link>

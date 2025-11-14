@@ -6,6 +6,8 @@ import { VistaHome } from "../containers/VistaHome/VistaIndexHome"
 import VistaIndexClientes from "../containers/VistaClientes/VistaIndexClientes"
 import VistaProductoParticular from "../containers/VistaProductoParticular/VistaProductoParticular"
 import VistaIndexCheckout from "../containers/VistaCheckout/VistaIndexCheckout"
+import VistaIndexContacto from "../containers/VistaContacto/VistaIndexContacto"
+import VistaIndexNosotros from "../containers/VistaNosotros/VistaIndexNosotros"
 import { CartProvider } from "../context/CartContext"
 
 function App() {
@@ -21,6 +23,8 @@ function App() {
               <Route path="/clientes" element={<VistaIndexClientes />} />
               <Route path="/producto/:id" element={<VistaProductoParticular />} />
               <Route path="/checkout" element={<VistaIndexCheckout />} />
+              <Route path="/contacto" element={<VistaIndexContacto />} />
+              <Route path="/nosotros" element={<VistaIndexNosotros />} />
             </Routes>
           </main>
           <Footer />
