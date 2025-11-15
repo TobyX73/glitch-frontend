@@ -28,6 +28,11 @@ function Navbar(){
           className="transition-transform duration-300 hover:text-white font- hover:scale-105">
           Nosotros
         </Link>
+        <Link 
+          to="/admin" 
+          className="transition-transform duration-300 hover:text-white font- hover:scale-105">
+          Panel de Admin
+        </Link>
       </div>
 
       <Link 

@@ -84,7 +84,7 @@ const AdminDashboard = () => {
           Bienvenido, Admin! 👋
         </h1>
         <p className="text-gray-400 text-lg">
-          Aquí podés gestionar tu tienda Glitch
+          Aca podés gestionar la tienda
         </p>
       </motion.div>
 
@@ -98,7 +98,7 @@ const AdminDashboard = () => {
             transition={{ duration: 0.5, delay: index * 0.1 }}
             whileHover={{ scale: 1.05, y: -5 }}
             onClick={() => navigate(stat.path)}
-            className="bg-azul-oscuro border-2 border-verde rounded-lg p-6 cursor-pointer hover:bg-verde hover:border-verde transition-all duration-300 group"
+            className="bg-azul border-2 border-verde rounded-lg p-6 cursor-pointer hover:bg-verde hover:border-verde transition-all duration-300 group"
           >
             <div className="flex items-center justify-between mb-4">
               <div className="text-verde group-hover:text-gris transition-colors">
@@ -141,7 +141,7 @@ const AdminDashboard = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="mt-12 bg-azul-oscuro border border-gray-700 rounded-lg p-6"
+        className="mt-12 bg-azul border border-gray-700 rounded-lg p-6"
       >
         <h2 className="text-2xl font-bold text-white mb-4">Acceso Rápido</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

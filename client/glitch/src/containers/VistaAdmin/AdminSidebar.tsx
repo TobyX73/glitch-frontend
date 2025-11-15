@@ -69,7 +69,7 @@ const AdminSidebar = () => {
       initial={{ x: -300 }}
       animate={{ x: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="w-64 bg-azul-oscuro border-r-2 border-verde min-h-screen flex flex-col"
+      className="w-64 bg-azul border-r-2 border-verde min-h-screen flex flex-col"
     >
       {/* Logo */}
       <div className="p-6 border-b border-gray-700">
@@ -112,7 +112,32 @@ const AdminSidebar = () => {
       </nav>
 
       {/* Logout button */}
-      <div className="p-4 border-t border-gray-700">
+      <div className="p-4 border-t border-gray-700 space-y-2">
+        {/* Volver a la Tienda */}
+        <Link to="/">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gris border-2 border-gray-600 text-gray-300 rounded font-semibold hover:border-verde hover:text-verde transition-all duration-300"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              />
+            </svg>
+            Volver a la Tienda
+          </motion.button>
+        </Link>
+
+        {/* Cerrar Sesión */}
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}

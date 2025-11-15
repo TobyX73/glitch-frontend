@@ -12,6 +12,14 @@ import VistaIndexRegister from "../containers/VistaRegister/VistaIndexRegister"
 import VistaIndexLogin from "../containers/VistaLogin/VistaIndexLogin"
 import VistaIndexAdmin from "../containers/VistaAdmin/VistaIndexAdmin"
 import AdminDashboard from "../containers/VistaAdmin/AdminDashboard"
+import VistaProductosAdmin from "../containers/VistaAdmin/ProductosAdmin/VistaProductosAdmin"
+import CrearProducto from "../containers/VistaAdmin/ProductosAdmin/CrearProducto"
+import EditarProducto from "../containers/VistaAdmin/ProductosAdmin/EditarProducto"
+import VerProducto from "../containers/VistaAdmin/ProductosAdmin/VerProducto"
+import VistaUsuariosAdmin from "../containers/VistaAdmin/UsuariosAdmin/VistaUsuariosAdmin"
+import VerUsuario from "../containers/VistaAdmin/UsuariosAdmin/VerUsuario"
+import VistaOrdenesAdmin from "../containers/VistaAdmin/OrdenesAdmin/VistaOrdenesAdmin"
+import VerOrden from "../containers/VistaAdmin/OrdenesAdmin/VerOrden"
 import { CartProvider } from "../context/CartContext"
 
 function App() {
@@ -89,7 +97,14 @@ function App() {
           {/* Rutas de Admin sin Navbar ni Footer */}
           <Route path="/admin" element={<VistaIndexAdmin />}>
             <Route index element={<AdminDashboard />} />
-            {/* TODO: Agregar rutas para productos, usuarios, órdenes */}
+            <Route path="productos" element={<VistaProductosAdmin />} />
+            <Route path="productos/nuevo" element={<CrearProducto />} />
+            <Route path="productos/:id" element={<VerProducto />} />
+            <Route path="productos/editar/:id" element={<EditarProducto />} />
+            <Route path="usuarios" element={<VistaUsuariosAdmin />} />
+            <Route path="usuarios/:id" element={<VerUsuario />} />
+            <Route path="ordenes" element={<VistaOrdenesAdmin />} />
+            <Route path="ordenes/:id" element={<VerOrden />} />
           </Route>
         </Routes>
       </Router>
