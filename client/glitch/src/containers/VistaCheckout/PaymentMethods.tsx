@@ -122,11 +122,6 @@ const PaymentMethods = ({ shippingData, cartItems }: PaymentMethodsProps) => {
             {/* Botón oficial de Mercado Pago */}
             <Wallet
               initialization={{ preferenceId }}
-              customization={{
-                texts: {
-                  valueProp: 'smart_option',
-                }
-              }}
             />
             
             {/* Nota para desarrollo */}
