@@ -1,40 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-
-interface Order {
-  id: number;
-  orderNumber: string;
-  date: string;
-  status: "pending" | "confirmed" | "cancelled";
-  customer: {
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-  };
-  items: OrderItem[];
-  subtotal: number;
-  shipping: number;
-  total: number;
-  notes?: string;
-  timeline: TimelineEvent[];
-}
-
-interface OrderItem {
-  id: number;
-  productName: string;
-  image: string;
-  quantity: number;
-  price: number;
-  size: string;
-}
-
-interface TimelineEvent {
-  status: string;
-  date: string;
-  description: string;
-}
+import { ordersAPI } from "../../../services/api";
+import type { Order } from "../../../types/product.types";
 
 const VerOrden = () => {
   const { id } = useParams<{ id: string }>();
@@ -45,67 +13,28 @@ const VerOrden = () => {
   const [adminNotes, setAdminNotes] = useState("");
   const [isSavingNotes, setIsSavingNotes] = useState(false);
 
-  // TODO: Cargar datos de la orden desde el backend
   useEffect(() => {
     const loadOrder = async () => {
-      try {
-        // Simular carga de datos
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        // Mock data - reemplazar con fetch real
-        const mockOrder: Order = {
-          id: parseInt(id || "0"),
-          orderNumber: "ORD-2024-001",
-          date: "2024-11-14T10:30:00",
-          status: "pending",
-          customer: {
-            name: "Juan Pérez",
-            email: "juan.perez@email.com",
-            phone: "+54 11 1234-5678",
-            address: "Av. Corrientes 1234, Piso 5, Dpto B, CABA, Buenos Aires",
-          },
-          items: [
-            {
-              id: 1,
-              productName: "Remera Cyberpunk 2077",
-              image: "/productos/remera1.jpg",
-              quantity: 1,
-              price: 15000,
-              size: "L",
-            },
-            {
-              id: 2,
-              productName: "Hoodie GTA V",
-              image: "/productos/hoodie1.jpg",
-              quantity: 1,
-              price: 13000,
-              size: "XL",
-            },
-          ],
-          subtotal: 28000,
-          shipping: 2500,
-          total: 30500,
-          notes: "",
-          timeline: [
-            {
-              status: "created",
-              date: "2024-11-14T10:30:00",
-              description: "Orden creada por el cliente",
-            },
-            {
-              status: "pending",
-              date: "2024-11-14T10:31:00",
-              description: "Esperando confirmación del administrador",
-            },
-          ],
-        };
-
-        setOrder(mockOrder);
-        setAdminNotes(mockOrder.notes || "");
+      if (!id) {
+        setError("ID de orden no válido");
         setIsLoading(false);
-      } catch (error) {
-        console.error("Error al cargar orden:", error);
-        setError("Error al cargar la orden");
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const response = await ordersAPI.getById(parseInt(id));
+        console.log("📦 Orden recibida:", response);
+        
+        // El backend puede devolver { data: order } o directamente order
+        const orderData: Order = (response as any).data || response;
+        setOrder(orderData);
+        setAdminNotes(orderData.notes || "");
+        setError("");
+      } catch (error: any) {
+        console.error("❌ Error al cargar orden:", error);
+        setError(error.response?.data?.message || "Error al cargar la orden");
+      } finally {
         setIsLoading(false);
       }
     };
@@ -113,35 +42,34 @@ const VerOrden = () => {
     loadOrder();
   }, [id]);
 
-  const handleStatusChange = async (newStatus: "confirmed" | "cancelled") => {
+  const handleStatusChange = async (newStatus: Order['status']) => {
     if (!order) return;
 
-    const confirmMessage =
-      newStatus === "confirmed"
-        ? "¿Estás seguro de confirmar esta orden?"
-        : "¿Estás seguro de cancelar esta orden?";
+    const statusMessages: Record<string, string> = {
+      'PENDING': '¿Marcar como pendiente?',
+      'PAYMENT_PENDING': '¿Marcar como pendiente de pago?',
+      'PAID': '¿Confirmar el pago?',
+      'PREPARING': '¿Marcar como en preparación?',
+      'SHIPPED': '¿Marcar como enviada?',
+      'DELIVERED': '¿Marcar como entregada?',
+      'CANCELLED': '¿Estás seguro de cancelar esta orden?',
+      'REFUNDED': '¿Marcar como reembolsada?',
+    };
+
+    const confirmMessage = statusMessages[newStatus] || '¿Actualizar el estado?';
 
     if (!window.confirm(confirmMessage)) return;
 
     try {
-      // TODO: Implementar actualización en el backend
-      const newEvent: TimelineEvent = {
-        status: newStatus,
-        date: new Date().toISOString(),
-        description:
-          newStatus === "confirmed"
-            ? "Orden confirmada por el administrador"
-            : "Orden cancelada por el administrador",
-      };
-
-      setOrder({
-        ...order,
-        status: newStatus,
-        timeline: [...order.timeline, newEvent],
-      });
-    } catch (error) {
-      console.error("Error al actualizar estado:", error);
-      alert("Error al actualizar el estado de la orden");
+      const updatedOrder = await ordersAPI.updateStatus(order.id.toString(), newStatus);
+      console.log("✅ Estado actualizado:", updatedOrder);
+      
+      // Actualizar orden en el estado local
+      const orderData: Order = (updatedOrder as any).data || updatedOrder;
+      setOrder(orderData);
+    } catch (error: any) {
+      console.error("❌ Error al actualizar estado:", error);
+      alert(error.response?.data?.message || "Error al actualizar el estado de la orden");
     }
   };
 
@@ -150,17 +78,19 @@ const VerOrden = () => {
 
     setIsSavingNotes(true);
     try {
-      // TODO: Implementar guardado en el backend
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
+      // Nota: El backend actual puede no tener endpoint para actualizar notas
+      // Si existe, debería ser: PATCH /orders/:id con { notes: adminNotes }
+      console.log("💾 Guardando notas para orden:", order.id);
+      
+      // Por ahora, solo actualizamos el estado local
       setOrder({
         ...order,
         notes: adminNotes,
       });
 
-      alert("Notas guardadas correctamente");
-    } catch (error) {
-      console.error("Error al guardar notas:", error);
+      alert("Notas guardadas correctamente (solo localmente - implementar endpoint en backend)");
+    } catch (error: any) {
+      console.error("❌ Error al guardar notas:", error);
       alert("Error al guardar las notas");
     } finally {
       setIsSavingNotes(false);
@@ -169,23 +99,45 @@ const VerOrden = () => {
 
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
-      case "pending":
+      case "PENDING":
+      case "PAYMENT_PENDING":
         return "bg-yellow-500 bg-opacity-20 text-yellow-400 border-yellow-500";
-      case "confirmed":
+      case "PAID":
+      case "PREPARING":
+        return "bg-blue-500 bg-opacity-20 text-blue-400 border-blue-500";
+      case "SHIPPED":
+        return "bg-purple-500 bg-opacity-20 text-purple-400 border-purple-500";
+      case "DELIVERED":
         return "bg-verde bg-opacity-20 text-verde border-verde";
-      case "cancelled":
+      case "CANCELLED":
         return "bg-red-500 bg-opacity-20 text-red-400 border-red-500";
+      case "REFUNDED":
+        return "bg-orange-500 bg-opacity-20 text-orange-400 border-orange-500";
+      default:
+        return "bg-gray-500 bg-opacity-20 text-gray-400 border-gray-500";
     }
   };
 
   const getStatusText = (status: Order["status"]) => {
     switch (status) {
-      case "pending":
-        return "En Confirmación";
-      case "confirmed":
-        return "Confirmada";
-      case "cancelled":
+      case "PENDING":
+        return "Pendiente";
+      case "PAYMENT_PENDING":
+        return "Pago Pendiente";
+      case "PAID":
+        return "Pagada";
+      case "PREPARING":
+        return "En Preparación";
+      case "SHIPPED":
+        return "Enviada";
+      case "DELIVERED":
+        return "Entregada";
+      case "CANCELLED":
         return "Cancelada";
+      case "REFUNDED":
+        return "Reembolsada";
+      default:
+        return status;
     }
   };
 
@@ -231,7 +183,7 @@ const VerOrden = () => {
           <h1 className="text-4xl font-bold text-white mb-2">
             Detalle de Orden
           </h1>
-          <p className="text-verde font-bold text-xl">{order.orderNumber}</p>
+          <p className="text-verde font-bold text-xl">#{order.id}</p>
         </div>
 
         {/* Action Buttons */}
@@ -258,51 +210,64 @@ const VerOrden = () => {
             Volver
           </motion.button>
 
-          {order.status === "pending" && (
+          {/* Botones de cambio de estado según estado actual */}
+          {order.status === "PENDING" && (
+            <>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleStatusChange("PAID")}
+                className="flex items-center gap-2 px-6 py-3 bg-verde text-gris rounded font-bold hover:bg-opacity-90 transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Marcar como Pagada
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => handleStatusChange("CANCELLED")}
+                className="flex items-center gap-2 px-6 py-3 bg-gris border-2 border-red-500 text-red-500 rounded font-bold hover:bg-red-500 hover:text-white transition-all"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Cancelar
+              </motion.button>
+            </>
+          )}
+
+          {order.status === "PAID" && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => handleStatusChange("confirmed")}
+              onClick={() => handleStatusChange("PREPARING")}
               className="flex items-center gap-2 px-6 py-3 bg-verde text-gris rounded font-bold hover:bg-opacity-90 transition-all"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              Confirmar Orden
+              Marcar como En Preparación
             </motion.button>
           )}
 
-          {(order.status === "pending" || order.status === "confirmed") && (
+          {order.status === "PREPARING" && (
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => handleStatusChange("cancelled")}
-              className="flex items-center gap-2 px-6 py-3 bg-gris border-2 border-red-500 text-red-500 rounded font-bold hover:bg-red-500 hover:text-white transition-all"
+              onClick={() => handleStatusChange("SHIPPED")}
+              className="flex items-center gap-2 px-6 py-3 bg-verde text-gris rounded font-bold hover:bg-opacity-90 transition-all"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-              Cancelar Orden
+              Marcar como Enviada
+            </motion.button>
+          )}
+
+          {order.status === "SHIPPED" && (
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleStatusChange("DELIVERED")}
+              className="flex items-center gap-2 px-6 py-3 bg-verde text-gris rounded font-bold hover:bg-opacity-90 transition-all"
+            >
+              Marcar como Entregada
             </motion.button>
           )}
         </div>
@@ -329,32 +294,30 @@ const VerOrden = () => {
               </span>
             </div>
 
-            {/* Timeline */}
-            <div className="space-y-4">
-              {order.timeline.map((event, index) => (
-                <div key={index} className="flex gap-4">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-4 h-4 rounded-full ${
-                        index === order.timeline.length - 1
-                          ? "bg-verde"
-                          : "bg-gray-600"
-                      }`}
-                    ></div>
-                    {index < order.timeline.length - 1 && (
-                      <div className="w-0.5 h-full bg-gray-600 mt-1"></div>
-                    )}
-                  </div>
-                  <div className="flex-1 pb-4">
-                    <p className="text-white font-semibold">
-                      {event.description}
-                    </p>
-                    <p className="text-gray-400 text-sm">
-                      {new Date(event.date).toLocaleString("es-AR")}
-                    </p>
-                  </div>
+            {/* Info básica */}
+            <div className="space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Orden ID:</span>
+                <span className="text-white font-semibold">#{order.id}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Fecha:</span>
+                <span className="text-white font-semibold">
+                  {new Date(order.createdAt).toLocaleString("es-AR")}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Estado de Pago:</span>
+                <span className="text-white font-semibold">
+                  {order.payment?.status || 'Pendiente'}
+                </span>
+              </div>
+              {order.mpExternalReference && (
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Referencia MP:</span>
+                  <span className="text-white font-semibold">{order.mpExternalReference}</span>
                 </div>
-              ))}
+              )}
             </div>
           </motion.div>
 
@@ -375,11 +338,13 @@ const VerOrden = () => {
                   key={item.id}
                   className="flex gap-4 bg-azul border border-gray-600 rounded-lg p-4 hover:border-verde transition-colors"
                 >
-                  <img
-                    src={item.image}
-                    alt={item.productName}
-                    className="w-20 h-20 object-cover rounded border border-gray-600"
-                  />
+                  {item.productImage && (
+                    <img
+                      src={item.productImage}
+                      alt={item.productName}
+                      className="w-20 h-20 object-cover rounded border border-gray-600"
+                    />
+                  )}
                   <div className="flex-1">
                     <h3 className="text-white font-semibold text-lg mb-1">
                       {item.productName}
@@ -387,9 +352,6 @@ const VerOrden = () => {
                     <div className="flex items-center gap-3 text-sm mb-2">
                       <span className="text-gray-400">
                         Cantidad: {item.quantity}
-                      </span>
-                      <span className="px-2 py-1 bg-gris border border-verde text-verde text-xs rounded">
-                        Talla: {item.size}
                       </span>
                     </div>
                     <p className="text-verde font-bold text-lg">
@@ -408,15 +370,7 @@ const VerOrden = () => {
 
             {/* Order Summary */}
             <div className="mt-6 pt-6 border-t-2 border-verde space-y-3">
-              <div className="flex justify-between text-gray-400">
-                <span>Subtotal</span>
-                <span>${order.subtotal.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-gray-400">
-                <span>Envío</span>
-                <span>${order.shipping.toLocaleString()}</span>
-              </div>
-              <div className="flex justify-between text-white text-xl font-bold pt-3 border-t border-gray-600">
+              <div className="flex justify-between text-white text-xl font-bold">
                 <span>Total</span>
                 <span className="text-verde">${order.total.toLocaleString()}</span>
               </div>
@@ -476,7 +430,9 @@ const VerOrden = () => {
                 <label className="text-gray-400 text-sm block mb-1">
                   Nombre
                 </label>
-                <p className="text-white font-semibold">{order.customer.name}</p>
+                <p className="text-white font-semibold">
+                  {order.guestName || 'Usuario registrado'}
+                </p>
               </div>
 
               <div>
@@ -484,16 +440,7 @@ const VerOrden = () => {
                   Email
                 </label>
                 <p className="text-white font-semibold">
-                  {order.customer.email}
-                </p>
-              </div>
-
-              <div>
-                <label className="text-gray-400 text-sm block mb-1">
-                  Teléfono
-                </label>
-                <p className="text-white font-semibold">
-                  {order.customer.phone}
+                  {order.guestEmail || 'No disponible'}
                 </p>
               </div>
 
@@ -502,7 +449,7 @@ const VerOrden = () => {
                   Dirección de Envío
                 </label>
                 <p className="text-white font-semibold">
-                  {order.customer.address}
+                  {order.shippingInfo.street}, {order.shippingInfo.city}, {order.shippingInfo.state} {order.shippingInfo.zipCode}
                 </p>
               </div>
             </div>
@@ -518,21 +465,21 @@ const VerOrden = () => {
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">Número de Orden</span>
                 <span className="text-white font-semibold">
-                  {order.orderNumber}
+                  #{order.id}
                 </span>
               </div>
 
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">Fecha de Creación</span>
                 <span className="text-white font-semibold">
-                  {new Date(order.date).toLocaleDateString("es-AR")}
+                  {new Date(order.createdAt).toLocaleDateString("es-AR")}
                 </span>
               </div>
 
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">Hora</span>
                 <span className="text-white font-semibold">
-                  {new Date(order.date).toLocaleTimeString("es-AR", {
+                  {new Date(order.createdAt).toLocaleTimeString("es-AR", {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}

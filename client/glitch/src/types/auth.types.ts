@@ -1,4 +1,4 @@
-// Tipos de autenticación basados en el backend
+// Tipos de autenticaciï¿½n basados en el backend
 
 export interface User {
   id: number;

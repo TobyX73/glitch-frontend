@@ -172,7 +172,7 @@ const VistaUsuariosAdmin = () => {
             <tbody className="divide-y divide-gray-700">
               {paginatedUsers.map((user, index) => (
                 <motion.tr
-                  key={user._id}
+                  key={user.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -209,7 +209,7 @@ const VistaUsuariosAdmin = () => {
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => user._id && navigate(`/admin/usuarios/${user._id}`)}
+                        onClick={() => user.id && navigate(`/admin/usuarios/${user.id}`)}
                         className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-verde hover:text-verde transition-colors"
                         title="Ver detalles y órdenes"
                       >

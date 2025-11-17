@@ -122,13 +122,13 @@ const VistaOrdenesAdmin = () => {
     }
   };
 
-  const handleStatusChange = async (orderId: string, newStatus: "confirmed" | "cancelled") => {
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
     try {
       await ordersAPI.updateStatus(orderId, newStatus);
       // Actualizar estado local
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
-          order._id === orderId ? { ...order, status: newStatus } : order
+          order.id.toString() === orderId ? { ...order, status: newStatus as Order['status'] } : order
         )
       );
     } catch (err: any) {
@@ -393,7 +393,7 @@ const VistaOrdenesAdmin = () => {
             <tbody className="divide-y divide-gray-700">
               {paginatedOrders.map((order, index) => (
                 <motion.tr
-                  key={order._id}
+                  key={order.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}

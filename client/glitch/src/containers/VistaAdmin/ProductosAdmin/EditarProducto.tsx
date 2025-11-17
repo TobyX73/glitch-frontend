@@ -1,16 +1,22 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import api, { productsAPI, categoriesAPI, uploadsAPI } from "../../../services/api";
+import type { Product, Category, ProductImage } from "../../../types/product.types";
 
 interface ProductForm {
   name: string;
   description: string;
-  price: string;
-  stock: string;
+  price: string;              // basePrice como string para el input
   category: string;
   sizes: string[];
-  images: File[];
-  existingImages: string[];
+  images: File[];             // Nuevas imágenes a subir
+  existingImages: ProductImage[];  // Imágenes ya en Cloudinary
+  isActive: boolean;          // Estado activo/inactivo
+}
+
+interface SizeStock {
+  [size: string]: string; // size -> stock amount
 }
 
 const EditarProducto = () => {
@@ -21,56 +27,92 @@ const EditarProducto = () => {
     name: "",
     description: "",
     price: "",
-    stock: "",
     category: "",
     sizes: [],
     images: [],
     existingImages: [],
+    isActive: true,
   });
 
+  const [sizeStocks, setSizeStocks] = useState<SizeStock>({});
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
   const availableSizes = ["S", "M", "L", "XL", "XXL"];
-  const categories = ["Remeras", "Buzos", "Accesorios", "Otros"];
 
-  // TODO: Cargar datos del producto desde el backend
+  // Cargar categorías desde el backend
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await categoriesAPI.getAll();
+        const categories = Array.isArray(response) ? response : (response as any).data || [];
+        setCategories(categories);
+      } catch (err) {
+        console.error('Error al cargar categorías:', err);
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
+
   useEffect(() => {
     const loadProduct = async () => {
-      try {
-        // Simular carga de datos
-        await new Promise((resolve) => setTimeout(resolve, 500));
+      if (!id) {
+        setErrors({ load: "ID de producto no válido" });
+        setIsLoading(false);
+        return;
+      }
 
-        // Mock data - reemplazar con fetch real
-        const mockProduct = {
-          id: parseInt(id || "0"),
-          name: "Remera Cyberpunk 2077",
-          description: "Remera de algodón con diseño exclusivo",
-          price: "15000",
-          stock: "25",
-          category: "Remeras",
-          sizes: ["S", "M", "L", "XL"],
-          images: ["/productos/remera1.jpg", "/productos/remera2.jpg"],
-        };
+      try {
+        setIsLoading(true);
+        const response = await productsAPI.getById(id);
+        console.log("📦 Producto cargado para editar:", response);
+        
+        // El backend puede devolver { data: product } o directamente product
+        const product: Product = (response as any).data || response;
+
+        // Extraer tallas de variants
+        const sizes = product.variants ? product.variants.map(v => v.size) : product.sizes || [];
+        
+        // Extraer stock por talla de variants
+        const stocks: SizeStock = {};
+        if (product.variants) {
+          product.variants.forEach(variant => {
+            stocks[variant.size] = variant.stock.toString();
+          });
+        }
+
+        // Extraer URLs de imágenes
+        const existingImages: ProductImage[] = product.images || [];
+        const imagePreviews = existingImages.map(img => 
+          typeof img === 'string' ? img : img.url
+        );
 
         setFormData({
-          name: mockProduct.name,
-          description: mockProduct.description,
-          price: mockProduct.price,
-          stock: mockProduct.stock,
-          category: mockProduct.category,
-          sizes: mockProduct.sizes,
+          name: product.name,
+          description: product.description,
+          price: (product.basePrice || product.price || 0).toString(),
+          category: product.categoryId?.toString() || '',
+          sizes,
           images: [],
-          existingImages: mockProduct.images,
+          existingImages,
+          isActive: product.isActive !== undefined ? product.isActive : true,
         });
 
-        setImagePreviews(mockProduct.images);
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error al cargar producto:", error);
-        setErrors({ load: "Error al cargar el producto" });
+        setSizeStocks(stocks);
+        setImagePreviews(imagePreviews);
+        setErrors({});
+      } catch (error: any) {
+        console.error("❌ Error al cargar producto:", error);
+        setErrors({ load: error.response?.data?.message || "Error al cargar el producto" });
+      } finally {
         setIsLoading(false);
       }
     };
@@ -91,12 +133,33 @@ const EditarProducto = () => {
   };
 
   const handleSizeToggle = (size: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      sizes: prev.sizes.includes(size)
-        ? prev.sizes.filter((s) => s !== size)
-        : [...prev.sizes, size],
-    }));
+    setFormData((prev) => {
+      const isRemoving = prev.sizes.includes(size);
+      
+      if (isRemoving) {
+        // Eliminar talla y su stock
+        const newSizeStocks = { ...sizeStocks };
+        delete newSizeStocks[size];
+        setSizeStocks(newSizeStocks);
+        
+        return {
+          ...prev,
+          sizes: prev.sizes.filter((s) => s !== size),
+        };
+      } else {
+        // Agregar talla con stock inicial 0
+        setSizeStocks((prev) => ({ ...prev, [size]: "0" }));
+        
+        return {
+          ...prev,
+          sizes: [...prev.sizes, size],
+        };
+      }
+    });
+  };
+
+  const handleSizeStockChange = (size: string, stock: string) => {
+    setSizeStocks((prev) => ({ ...prev, [size]: stock }));
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -175,16 +238,21 @@ const EditarProducto = () => {
       newErrors.price = "El precio debe ser mayor a 0";
     }
 
-    if (!formData.stock || parseInt(formData.stock) < 0) {
-      newErrors.stock = "El stock debe ser mayor o igual a 0";
-    }
-
     if (!formData.category) {
       newErrors.category = "Seleccioná una categoría";
     }
 
     if (formData.sizes.length === 0) {
       newErrors.sizes = "Seleccioná al menos un talle";
+    }
+
+    // Validar que cada talla tenga stock >= 0
+    for (const size of formData.sizes) {
+      const stock = parseInt(sizeStocks[size] || "0");
+      if (isNaN(stock) || stock < 0) {
+        newErrors.sizeStock = "Todos los talles deben tener stock válido (>= 0)";
+        break;
+      }
     }
 
     if (
@@ -201,52 +269,106 @@ const EditarProducto = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validate()) return;
+    if (!validate() || !id) return;
 
     setIsSubmitting(true);
+    setUploadProgress("");
 
     try {
-      // TODO: Implementar PUT al backend con FormData
-      const formDataToSend = new FormData();
-      formDataToSend.append("name", formData.name);
-      formDataToSend.append("description", formData.description);
-      formDataToSend.append("price", formData.price);
-      formDataToSend.append("stock", formData.stock);
-      formDataToSend.append("category", formData.category);
-      formDataToSend.append("sizes", JSON.stringify(formData.sizes));
-      formDataToSend.append(
-        "existingImages",
-        JSON.stringify(formData.existingImages)
-      );
+      console.log("📤 Actualizando producto:", id);
+      console.log("📏 Tallas con stock:", sizeStocks);
 
-      formData.images.forEach((image, index) => {
-        formDataToSend.append(`newImage${index}`, image);
-      });
+      // ========== PASO 1: Subir nuevas imágenes a Cloudinary si existen ==========
+      const allImages: ProductImage[] = [...formData.existingImages];
 
-      console.log("FormData to update:", {
-        id,
+      if (formData.images.length > 0) {
+        setUploadProgress(`Subiendo imágenes (0/${formData.images.length})...`);
+
+        for (let i = 0; i < formData.images.length; i++) {
+          const imageFile = formData.images[i];
+          console.log(`🖼️ Subiendo imagen ${i + 1}/${formData.images.length}:`, imageFile.name);
+          setUploadProgress(`Subiendo imágenes (${i + 1}/${formData.images.length})...`);
+
+          try {
+            const uploadResult = await uploadsAPI.uploadImage(imageFile);
+            console.log(`✅ Imagen ${i + 1} subida:`, uploadResult.url);
+
+            allImages.push({
+              url: uploadResult.url,
+              order: allImages.length,
+              isMain: allImages.length === 0, // Primera imagen es main
+            });
+          } catch (uploadError: any) {
+            console.error(`❌ Error al subir imagen ${i + 1}:`, uploadError);
+            throw new Error(`Error al subir imagen ${i + 1}: ${uploadError.response?.data?.message || uploadError.message}`);
+          }
+        }
+
+        console.log("✅ Todas las imágenes procesadas:", allImages);
+      }
+
+      // ========== PASO 2: Construir variants desde sizeStocks ==========
+      const variants = formData.sizes.map((size) => ({
+        size,
+        stock: parseInt(sizeStocks[size] || "0", 10),
+      }));
+
+      console.log("📦 Variants construidos:", variants);
+
+      // ========== PASO 3: Construir payload final ==========
+      const productData = {
         name: formData.name,
+        basePrice: parseFloat(formData.price),
+        categoryId: parseInt(formData.category, 10),
         description: formData.description,
-        price: formData.price,
-        stock: formData.stock,
-        category: formData.category,
-        sizes: formData.sizes,
-        existingImages: formData.existingImages.length,
-        newImages: formData.images.length,
+        images: allImages.map((img, index) => ({
+          url: typeof img === 'string' ? img : img.url,
+          order: index,
+          isMain: index === 0,
+        })),
+        variants,
+        isActive: formData.isActive,
+      };
+
+      console.log("📤 PAYLOAD COMPLETO:", JSON.stringify(productData, null, 2));
+
+      // ========== PASO 4: Actualizar producto en el backend ==========
+      setUploadProgress("Actualizando producto...");
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("No estás autenticado. Por favor, iniciá sesión.");
+      }
+
+      const response = await api.put(`/products/${id}`, productData, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
 
-      // Simular delay de API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      console.log("✅ Producto actualizado exitosamente:", response.data);
 
-      // Redirigir al detalle del producto
+      alert("✅ Producto actualizado exitosamente");
       navigate(`/admin/productos/${id}`);
-    } catch (error) {
-      console.error("Error al actualizar producto:", error);
+    } catch (error: any) {
+      console.error("❌ Error al actualizar producto:", error);
+      console.log("Respuesta del servidor:", error.response?.data);
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Error desconocido al actualizar el producto";
+
       setErrors({
-        submit: "Error al actualizar el producto. Intentá nuevamente.",
+        submit: errorMessage,
       });
+
+      alert(`❌ Error: ${errorMessage}`);
     } finally {
       setIsSubmitting(false);
+      setUploadProgress("");
     }
   };
 
@@ -356,7 +478,7 @@ const EditarProducto = () => {
             {/* Precio */}
             <div>
               <label className="block text-white font-semibold mb-2">
-                Precio *
+                Precio Base *
               </label>
               <input
                 type="number"
@@ -375,27 +497,6 @@ const EditarProducto = () => {
               )}
             </div>
 
-            {/* Stock */}
-            <div>
-              <label className="block text-white font-semibold mb-2">
-                Stock *
-              </label>
-              <input
-                type="number"
-                name="stock"
-                value={formData.stock}
-                onChange={handleInputChange}
-                min="0"
-                className={`w-full px-4 py-3 bg-azul border-2 ${
-                  errors.stock ? "border-red-500" : "border-gray-600"
-                } rounded text-white placeholder-gray-500 focus:outline-none focus:border-verde transition-colors`}
-                placeholder="0"
-              />
-              {errors.stock && (
-                <p className="text-red-500 text-sm mt-1">{errors.stock}</p>
-              )}
-            </div>
-
             {/* Categoría */}
             <div>
               <label className="block text-white font-semibold mb-2">
@@ -405,14 +506,17 @@ const EditarProducto = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
+                disabled={isLoadingCategories}
                 className={`w-full px-4 py-3 bg-azul border-2 ${
                   errors.category ? "border-red-500" : "border-gray-600"
-                } rounded text-white focus:outline-none focus:border-verde transition-colors`}
+                } rounded text-white focus:outline-none focus:border-verde transition-colors disabled:opacity-50`}
               >
-                <option value="">Seleccioná una categoría</option>
+                <option value="">
+                  {isLoadingCategories ? 'Cargando...' : 'Seleccioná una categoría'}
+                </option>
                 {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
                   </option>
                 ))}
               </select>
@@ -421,8 +525,24 @@ const EditarProducto = () => {
               )}
             </div>
 
-            {/* Tallas */}
+            {/* Estado */}
             <div>
+              <label className="block text-white font-semibold mb-2">
+                Estado *
+              </label>
+              <select
+                name="isActive"
+                value={formData.isActive ? "true" : "false"}
+                onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.value === "true" }))}
+                className="w-full px-4 py-3 bg-azul border-2 border-gray-600 rounded text-white focus:outline-none focus:border-verde transition-colors"
+              >
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+              </select>
+            </div>
+
+            {/* Tallas */}
+            <div className="md:col-span-2">
               <label className="block text-white font-semibold mb-2">
                 Tallas Disponibles *
               </label>
@@ -446,6 +566,35 @@ const EditarProducto = () => {
                 <p className="text-red-500 text-sm mt-1">{errors.sizes}</p>
               )}
             </div>
+
+            {/* Stock por Talla */}
+            {formData.sizes.length > 0 && (
+              <div className="md:col-span-2">
+                <label className="block text-white font-semibold mb-3">
+                  Stock por Talla *
+                </label>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {formData.sizes.map((size) => (
+                    <div key={size}>
+                      <label className="block text-gray-400 text-sm mb-1">
+                        Talla {size}
+                      </label>
+                      <input
+                        type="number"
+                        value={sizeStocks[size] || "0"}
+                        onChange={(e) => handleSizeStockChange(size, e.target.value)}
+                        min="0"
+                        className="w-full px-3 py-2 bg-azul border-2 border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-verde transition-colors"
+                        placeholder="0"
+                      />
+                    </div>
+                  ))}
+                </div>
+                {errors.sizeStock && (
+                  <p className="text-red-500 text-sm mt-2">{errors.sizeStock}</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -559,26 +708,58 @@ const EditarProducto = () => {
         </div>
 
         {/* Botones */}
-        <div className="flex gap-4">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="submit"
-            disabled={isSubmitting}
-            className="px-8 py-4 bg-verde text-gris font-bold rounded text-lg hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? "Actualizando..." : "Actualizar Producto"}
-          </motion.button>
+        <div className="flex flex-col gap-4">
+          {/* Progress indicator */}
+          {uploadProgress && (
+            <div className="p-4 bg-verde bg-opacity-20 border border-verde rounded text-verde">
+              <div className="flex items-center gap-3">
+                <svg
+                  className="animate-spin h-5 w-5 text-verde"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                <span>{uploadProgress}</span>
+              </div>
+            </div>
+          )}
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="button"
-            onClick={() => navigate(`/admin/productos/${id}`)}
-            className="px-8 py-4 bg-gris border-2 border-gray-600 text-gray-300 font-bold rounded text-lg hover:border-verde hover:text-verde transition-all"
-          >
-            Cancelar
-          </motion.button>
+          <div className="flex gap-4">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="submit"
+              disabled={isSubmitting}
+              className="px-8 py-4 bg-verde text-gris font-bold rounded text-lg hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? "Procesando..." : "Actualizar Producto"}
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              type="button"
+              onClick={() => navigate(`/admin/productos/${id}`)}
+              disabled={isSubmitting}
+              className="px-8 py-4 bg-gris border-2 border-gray-600 text-gray-300 font-bold rounded text-lg hover:border-verde hover:text-verde transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Cancelar
+            </motion.button>
+          </div>
         </div>
       </motion.form>
     </div>

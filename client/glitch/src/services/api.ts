@@ -125,20 +125,27 @@ export const usersAPI = {
   },
 };
 
+// ==================== UPLOADS ====================
+
+export const uploadsAPI = {
+  // Subir imagen a Cloudinary
+  uploadImage: async (imageFile: File): Promise<{ url: string; publicId: string; width: number; height: number; format: string }> => {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    
+    const response = await api.post<{ data: { url: string; publicId: string; width: number; height: number; format: string } }>('/uploads/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data.data;
+  },
+};
+
 // ==================== PRODUCTOS ====================
 
-export interface Product {
-  _id: string;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  category: string | { _id: string; name: string };
-  images?: string[];
-  sizes?: string[];
-  createdAt?: string;
-  updatedAt?: string;
-}
+// Importar tipos desde product.types.ts en lugar de duplicar
+import type { Product } from '../types/product.types';
 
 export const productsAPI = {
   // Obtener todos los productos
@@ -190,7 +197,7 @@ export const productsAPI = {
 // ==================== CATEGORÍAS ====================
 
 export interface Category {
-  _id: string;
+  id: number;
   name: string;
   description?: string;
   createdAt?: string;
@@ -242,9 +249,9 @@ export interface Order {
   userId: number;
   items: OrderItem[];
   total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'PENDING' | 'PAYMENT_PENDING' | 'PAID' | 'PREPARING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
   shippingAddress?: string;
-  paymentStatus?: 'pending' | 'paid' | 'failed';
+  paymentStatus?: 'PENDING' | 'PAID' | 'FAILED';
   createdAt?: string;
   updatedAt?: string;
 }

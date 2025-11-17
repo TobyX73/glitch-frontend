@@ -1,18 +1,41 @@
 // Tipos para productos
+export interface ProductVariant {
+  id?: number;
+  size: string;
+  stock: number;
+  sku?: string;
+}
+
+export interface ProductImage {
+  id?: number;
+  url: string;
+  order: number;
+  isMain: boolean;
+  publicId?: string;
+}
+
 export interface Product {
-  _id: string;
+  id: number;
   name: string;
   description: string;
-  price: number;
-  stock: number;
-  images: string[];
-  sizes: string[];
+  basePrice: number;              // ✅ Cambio de price a basePrice
+  totalStock: number;             // ✅ Stock total calculado
+  images: ProductImage[];         // ✅ Array de objetos con metadata
+  mainImage?: string;             // ✅ URL de imagen principal
+  variants: ProductVariant[];     // ✅ Variantes con size + stock
   category: {
-    _id: string;
+    id: number;
     name: string;
   };
+  categoryId: number;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
+  
+  // Retrocompatibilidad temporal
+  price?: number;                 // Alias de basePrice
+  stock?: number;                 // Alias de totalStock
+  sizes?: string[];               // Alias derivado de variants
 }
 
 export interface ProductFormData {
@@ -26,14 +49,14 @@ export interface ProductFormData {
 }
 
 export interface Category {
-  _id: string;
+  id: number;
   name: string;
   description?: string;
 }
 
 // Tipos para usuarios
 export interface User {
-  _id: string;
+  id: number;
   firstName: string;
   lastName: string;
   email: string;

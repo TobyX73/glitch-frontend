@@ -44,12 +44,12 @@ const VistaProductosAdmin = () => {
     startIndex + itemsPerPage
   );
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm("¿Estás seguro de eliminar este producto?")) {
       try {
-        await productsAPI.delete(id);
+        await productsAPI.delete(id.toString());
         // Actualizar lista eliminando el producto
-        setProducts(products.filter(p => p._id !== id));
+        setProducts(products.filter(p => p.id !== id));
       } catch (err: any) {
         console.error('Error al eliminar producto:', err);
         alert('Error al eliminar el producto');
@@ -185,7 +185,7 @@ const VistaProductosAdmin = () => {
             <tbody className="divide-y divide-gray-700">
               {paginatedProducts.map((product, index) => (
                 <motion.tr
-                  key={product._id}
+                  key={product.id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -193,40 +193,58 @@ const VistaProductosAdmin = () => {
                 >
                   <td className="px-6 py-4">
                     <img
-                      src={(product.images && product.images[0]) || "/placeholder.jpg"}
+                      src={
+                        product.mainImage ||
+                        (product.images && product.images[0]
+                          ? typeof product.images[0] === 'string'
+                            ? product.images[0]
+                            : (product.images[0] as any).url
+                          : "/placeholder.jpg")
+                      }
                       alt={product.name}
                       className="w-16 h-16 object-cover rounded border border-gray-600"
                     />
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-white font-semibold">
-                      {product.name}
+                      {product.name || 'Sin nombre'}
                     </div>
                     <div className="text-gray-400 text-sm">
-                      {typeof product.category === 'object' ? product.category.name : product.category}
+                      {typeof product.category === 'object' ? product.category?.name : product.category || 'Sin categoría'}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-verde font-semibold">
-                    ${product.price.toLocaleString()}
+                    ${(product.basePrice || product.price || 0).toLocaleString()}
                   </td>
                   <td className="px-6 py-4">
                     <span
-                      className={`px-3 py-1 rounded-full text-sm font-semibold ${
-                        product.stock > 10
-                          ? "bg-verde bg-opacity-20 text-verde"
-                          : "bg-red-500 bg-opacity-20 text-red-500"
+                      className={`px-3 py-1 rounded-full text-sm font-semibold text-black ${
+                        (product.totalStock || product.stock || 0) > 10
+                          ? "bg-verde"
+                          : (product.totalStock || product.stock || 0) > 0
+                          ? "bg-yellow-500"
+                          : "bg-red-500"
                       }`}
                     >
-                      {product.stock} unidades
+                      {product.totalStock || product.stock || 0} unidades
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-1">
-                      {product.sizes && product.sizes.length > 0 ? (
+                      {product.variants && product.variants.length > 0 ? (
+                        product.variants.map((variant) => (
+                          <span
+                            key={variant.size}
+                            className="px-2 py-1 bg-gris border border-verde text-verde text-xs rounded font-semibold"
+                          >
+                            {variant.size}
+                          </span>
+                        ))
+                      ) : product.sizes && product.sizes.length > 0 ? (
                         product.sizes.map((size) => (
                           <span
                             key={size}
-                            className="px-2 py-1 bg-azul border border-verde text-verde text-xs rounded"
+                            className="px-2 py-1 bg-gris border border-verde text-verde text-xs rounded font-semibold"
                           >
                             {size}
                           </span>
@@ -243,9 +261,9 @@ const VistaProductosAdmin = () => {
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() =>
-                          navigate(`/admin/productos/${product._id}`)
+                          navigate(`/admin/productos/${product.id}`)
                         }
-                        className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-verde hover:text-verde transition-colors"
+                        className="p-2 bg-verde text-gris rounded hover:bg-opacity-90 transition-colors"
                         title="Ver detalles"
                       >
                         <svg
@@ -274,9 +292,9 @@ const VistaProductosAdmin = () => {
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() =>
-                          navigate(`/admin/productos/editar/${product._id}`)
+                          navigate(`/admin/productos/editar/${product.id}`)
                         }
-                        className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-verde hover:text-verde transition-colors"
+                        className="p-2 bg-verde text-gris rounded hover:bg-opacity-90 transition-colors"
                         title="Editar"
                       >
                         <svg
@@ -298,7 +316,7 @@ const VistaProductosAdmin = () => {
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => handleDelete(product._id)}
+                        onClick={() => handleDelete(product.id)}
                         className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-red-500 hover:text-red-500 transition-colors"
                         title="Eliminar"
                       >
