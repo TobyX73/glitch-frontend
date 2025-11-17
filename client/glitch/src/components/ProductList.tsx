@@ -1,11 +1,55 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import ProductCard from "./ProductCard"
-import RemerasPruebas from '../../public/Remeras/RemerasPrueba.json'
+import { productsAPI } from "../services/api";
+import type { Product } from "../types/product.types";
 
 const ProductList = () => {
-const displayedCount = 4
-//Con esta linea declaro que solo va a mostrar hasta 12 objetos.
-const visibleProducts = RemerasPruebas.slice(0, displayedCount);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await productsAPI.getAll();
+        // Mostrar solo los primeros 4 productos activos
+        const activeProducts = response.filter(p => p.isActive).slice(0, 4);
+        setProducts(activeProducts);
+      } catch (err) {
+        console.error('Error al cargar productos:', err);
+        setError('No se pudieron cargar los productos');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  if (loading) {
+    return (
+      <section className="p-6 flex justify-center items-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-verde mx-auto mb-4"></div>
+          <p className="text-verde text-xl font-semibold">Cargando productos...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="p-6 flex justify-center">
+        <div className="w-full text-center">
+          <p className="text-xl font-semibold text-verde">{error}</p>
+        </div>
+      </section>
+    );
+  }
+
+  const visibleProducts = products;
 
     return (
         <section className="p-6 flex justify-center">
@@ -37,10 +81,10 @@ const visibleProducts = RemerasPruebas.slice(0, displayedCount);
                     >
                         <ProductCard 
                             id={item.id}
-                            title={item.title}
-                            price={item.price}
-                            image={item.image}
-                            stock={item.stock}
+                            title={item.name}
+                            price={`$${item.basePrice.toLocaleString('es-AR')}`}
+                            image={item.mainImage || item.images[0]?.url || ''}
+                            stock={item.totalStock}
                         />
                     </motion.div>
                  ))}  

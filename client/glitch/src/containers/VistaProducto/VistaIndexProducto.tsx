@@ -1,30 +1,19 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import ProductCard from "../../components/ProductCard";
-import RemerasPruebas from "../../../public/Remeras/RemerasPrueba.json";
 import OrderBy from "./OrderBy";
 import Filters from "./Filters";
+import { productsAPI, categoriesAPI } from "../../services/api";
+import type { Product, Category } from "../../types/product.types";
 
 type SortOption = "newest-oldest" | "oldest-newest" | "price-low-high" | "price-high-low";
 
-interface Product {
-  id: number;
-  title: string;
-  price: string;
-  image: string;
-  stock: number;
-  descripcion: string;
-  color?: string;
-  corte?: string;
-  categoria?: string;
-  date?: string;
-}
-
 const VistaIndexProducto = () => {
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const [displayedCount, setDisplayedCount] = useState(12);
   const [sortBy, setSortBy] = useState<SortOption>("newest-oldest");
   
@@ -33,31 +22,58 @@ const VistaIndexProducto = () => {
   const [selectedCortes, setSelectedCortes] = useState<string[]>([]);
   const [selectedCategorias, setSelectedCategorias] = useState<string[]>([]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [productsData, categoriesData] = await Promise.all([
+          productsAPI.getAll(),
+          categoriesAPI.getAll()
+        ]);
+        
+        // Filtrar solo productos activos
+        const activeProducts = productsData.filter(p => p.isActive);
+        setProducts(activeProducts);
+        setCategories(categoriesData);
+      } catch (err) {
+        console.error('Error al cargar datos:', err);
+        setError('No se pudieron cargar los productos');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const itemsPerBatch = 12;
 
-  // Mock data con fechas para ordenamiento
-  const productsWithFilters: Product[] = RemerasPruebas.map((product, index) => ({
-    ...product,
-    date: new Date(2024, 0, index + 1).toISOString() // Fechas mock
-  }));
-
-  // Función para parsear precio
-  const parsePrice = (priceStr: string): number => {
-    return parseFloat(priceStr.replace(/[$.]/g, "").replace(",", "."));
-  };
-
-  // Aplicar filtros por búsqueda en título
-  let filteredProducts = productsWithFilters.filter(product => {
-    const titleLower = product.title.toLowerCase();
+  // Aplicar filtros
+  let filteredProducts = products.filter(product => {
+    const nameLower = product.name.toLowerCase();
+    const descLower = product.description.toLowerCase();
+    const categoryLower = product.category.name.toLowerCase();
     
     const matchColor = selectedColors.length === 0 || 
-      selectedColors.some(color => titleLower.includes(color.toLowerCase()));
+      selectedColors.some(color => 
+        nameLower.includes(color.toLowerCase()) || 
+        descLower.includes(color.toLowerCase())
+      );
       
     const matchCorte = selectedCortes.length === 0 || 
-      selectedCortes.some(corte => titleLower.includes(corte.toLowerCase()));
+      selectedCortes.some(corte => 
+        nameLower.includes(corte.toLowerCase()) || 
+        descLower.includes(corte.toLowerCase())
+      );
       
     const matchCategoria = selectedCategorias.length === 0 || 
-      selectedCategorias.some(categoria => titleLower.includes(categoria.toLowerCase()));
+      selectedCategorias.some(categoria => 
+        categoryLower.includes(categoria.toLowerCase()) || 
+        product.categoryId === parseInt(categoria) ||
+        categoria.toLowerCase() === categoryLower
+      );
       
     return matchColor && matchCorte && matchCategoria;
   });
@@ -66,13 +82,13 @@ const VistaIndexProducto = () => {
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
       case "price-low-high":
-        return parsePrice(a.price) - parsePrice(b.price);
+        return a.basePrice - b.basePrice;
       case "price-high-low":
-        return parsePrice(b.price) - parsePrice(a.price);
+        return b.basePrice - a.basePrice;
       case "newest-oldest":
-        return new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime();
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       case "oldest-newest":
-        return new Date(a.date || 0).getTime() - new Date(b.date || 0).getTime();
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       default:
         return 0;
     }
@@ -113,6 +129,27 @@ const VistaIndexProducto = () => {
     setSortBy(value);
   };
 
+  if (loading) {
+    return (
+      <section className="min-h-screen bg-gris p-8 pt-24 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-verde mx-auto mb-4"></div>
+          <p className="text-verde text-xl font-semibold">Cargando productos...</p>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="min-h-screen bg-gris p-8 pt-24 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-verde text-xl font-semibold">{error}</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="min-h-screen bg-gris p-8 pt-24">
       <div className="max-w-7xl mx-auto">
@@ -126,6 +163,7 @@ const VistaIndexProducto = () => {
               selectedCortes={selectedCortes}
               selectedCategorias={selectedCategorias}
               onToggleFilter={toggleFilter}
+              categories={categories}
             />
           </div>
 
@@ -158,10 +196,10 @@ const VistaIndexProducto = () => {
                 >
                   <ProductCard 
                     id={item.id}
-                    title={item.title}
-                    price={item.price}
-                    image={item.image}
-                    stock={item.stock}
+                    title={item.name}
+                    price={`$${item.basePrice.toLocaleString('es-AR')}`}
+                    image={item.mainImage || item.images[0]?.url || ''}
+                    stock={item.totalStock}
                   />
                 </motion.div>
               ))}

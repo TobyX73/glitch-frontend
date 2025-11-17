@@ -3,26 +3,43 @@ import { motion } from 'framer-motion';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { FreeMode, Navigation, Thumbs } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
+import type { ProductImage } from '../../types/product.types';
 import 'swiper/css';
 import 'swiper/css/free-mode';
 import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
 
 interface ImageGalleryProps {
-  productId: number;
+  images: ProductImage[];
   productName: string;
 }
 
-const ImageGallery = ({ productId, productName }: ImageGalleryProps) => {
+const ImageGallery = ({ images, productName }: ImageGalleryProps) => {
   const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
+  const [mainSwiper, setMainSwiper] = useState<SwiperType | null>(null);
 
-  // Generar 4 imágenes placeholder de Lorem Picsum
-  const images = Array.from({ length: 4 }, (_, i) => ({
-    id: i + 1,
-    url: `https://picsum.photos/seed/${productId}-${i}/600/600`,
-    thumbnail: `https://picsum.photos/seed/${productId}-${i}/150/150`,
-    alt: `${productName} - Vista ${i + 1}`
-  }));
+  // Ordenar imágenes por order, imagen principal primero
+  const sortedImages = [...images].sort((a, b) => {
+    if (a.isMain) return -1;
+    if (b.isMain) return 1;
+    return a.order - b.order;
+  });
+
+  // Si no hay imágenes, mostrar placeholder
+  if (!sortedImages || sortedImages.length === 0) {
+    return (
+      <motion.div 
+        className="flex flex-col gap-4"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+      >
+        <div className="w-full aspect-square rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
+          <p className="text-gray-400">Sin imagen disponible</p>
+        </div>
+      </motion.div>
+    );
+  }
   return (
     <motion.div 
       className="flex flex-col gap-4"
@@ -32,18 +49,19 @@ const ImageGallery = ({ productId, productName }: ImageGalleryProps) => {
     >
       {/* Swiper Principal */}
       <Swiper
+        onSwiper={setMainSwiper}
         spaceBetween={10}
         navigation={true}
         thumbs={{ swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null }}
         modules={[FreeMode, Navigation, Thumbs]}
         className="w-full aspect-square rounded-lg overflow-hidden"
       >
-        {images.map((image) => (
-          <SwiperSlide key={image.id}>
+        {sortedImages.map((image) => (
+          <SwiperSlide key={image.id || image.url}>
             <div className="w-full h-full bg-gray-200 flex items-center justify-center">
               <img
                 src={image.url}
-                alt={image.alt}
+                alt={`${productName} - ${image.isMain ? 'Principal' : `Vista ${image.order}`}`}
                 className="w-full h-full object-cover"
               />
             </div>
@@ -52,31 +70,25 @@ const ImageGallery = ({ productId, productName }: ImageGalleryProps) => {
       </Swiper>
 
       {/* Thumbnails */}
-      <Swiper
-        onSwiper={setThumbsSwiper}
-        spaceBetween={8}
-        slidesPerView={4}
-        freeMode={true}
-        watchSlidesProgress={true}
-        modules={[FreeMode, Navigation, Thumbs]}
-        className="w-96 h-20"
-      >
-        {images.map((image) => (
-          <SwiperSlide key={image.id} className="cursor-pointer h-20">
-            <div className="w-20 h-20 bg-gray-200 overflow-hidden hover:ring-2 hover:ring-verde transition-all">
+      {sortedImages.length > 1 && (
+        <div className="flex gap-2">
+          {sortedImages.slice(0, 4).map((image, index) => (
+            <div 
+              key={image.id || image.url}
+              onClick={() => mainSwiper?.slideTo(index)}
+              className="cursor-pointer w-20 h-20 bg-gray-200 overflow-hidden hover:ring-2 hover:ring-verde transition-all"
+            >
               <img
-                src={image.thumbnail}
-                alt={image.alt}
-                className="w-20 h-20 object-cover"
+                src={image.url}
+                alt={`${productName} thumbnail ${index + 1}`}
+                className="w-full h-full object-cover"
               />
             </div>
-          </SwiperSlide>
-        ))}
-      </Swiper>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
 };
-
-
 
 export default ImageGallery;

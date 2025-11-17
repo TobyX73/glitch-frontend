@@ -150,14 +150,14 @@ import type { Product } from '../types/product.types';
 export const productsAPI = {
   // Obtener todos los productos
   getAll: async (): Promise<Product[]> => {
-    const response = await api.get<Product[]>('/products');
-    return response.data;
+    const response = await api.get<{ success: boolean; data: Product[]; pagination?: any }>('/products');
+    return response.data.data;
   },
 
   // Obtener producto por ID
-  getById: async (id: string): Promise<Product> => {
-    const response = await api.get<Product>(`/products/${id}`);
-    return response.data;
+  getById: async (id: string | number): Promise<Product> => {
+    const response = await api.get<{ success: boolean; data: Product }>(`/products/${id}`);
+    return response.data.data;
   },
 
   // Crear producto con imágenes (FormData) (admin)
@@ -172,14 +172,14 @@ export const productsAPI = {
 
   // Crear producto sin imágenes (JSON) (admin)
   create: async (data: any): Promise<Product> => {
-    const response = await api.post<Product>('/products', data);
-    return response.data;
+    const response = await api.post<{ success: boolean; data: Product }>('/products', data);
+    return response.data.data;
   },
 
   // Actualizar producto (admin)
   update: async (id: string, data: any): Promise<Product> => {
-    const response = await api.put<Product>(`/products/${id}`, data);
-    return response.data;
+    const response = await api.put<{ success: boolean; data: Product }>(`/products/${id}`, data);
+    return response.data.data;
   },
 
   // Actualizar stock (admin)
@@ -207,20 +207,20 @@ export interface Category {
 export const categoriesAPI = {
   // Obtener todas las categorías
   getAll: async (): Promise<Category[]> => {
-    const response = await api.get<Category[]>('/categories');
-    return response.data;
+    const response = await api.get<{ success: boolean; data: Category[] }>('/categories');
+    return response.data.data;
   },
 
   // Obtener categoría por ID
   getById: async (id: string): Promise<Category> => {
-    const response = await api.get<Category>(`/categories/${id}`);
-    return response.data;
+    const response = await api.get<{ success: boolean; data: Category }>(`/categories/${id}`);
+    return response.data.data;
   },
 
   // Crear categoría (admin)
   create: async (data: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>): Promise<Category> => {
-    const response = await api.post<Category>('/categories', data);
-    return response.data;
+    const response = await api.post<{ success: boolean; data: Category }>('/categories', data);
+    return response.data.data;
   },
 
   // Actualizar categoría (admin)
