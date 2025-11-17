@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { productsAPI, type Product } from "../../../services/api";
+import { productsAPI, categoriesAPI, type Product } from "../../../services/api";
 
 const VistaProductosAdmin = () => {
   const navigate = useNavigate();
@@ -10,6 +10,10 @@ const VistaProductosAdmin = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryDescription, setNewCategoryDescription] = useState("");
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
   const itemsPerPage = 10;
 
   // Cargar productos desde el backend
@@ -54,6 +58,30 @@ const VistaProductosAdmin = () => {
         console.error('Error al eliminar producto:', err);
         alert('Error al eliminar el producto');
       }
+    }
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) {
+      alert('El nombre de la categoría es requerido');
+      return;
+    }
+
+    setIsCreatingCategory(true);
+    try {
+      await categoriesAPI.create({
+        name: newCategoryName,
+        description: newCategoryDescription || undefined,
+      });
+      alert('✅ Categoría creada exitosamente');
+      setShowCategoryModal(false);
+      setNewCategoryName('');
+      setNewCategoryDescription('');
+    } catch (err: any) {
+      console.error('Error al crear categoría:', err);
+      alert(`❌ Error: ${err.response?.data?.message || 'No se pudo crear la categoría'}`);
+    } finally {
+      setIsCreatingCategory(false);
     }
   };
 
@@ -126,12 +154,14 @@ const VistaProductosAdmin = () => {
           </svg>
         </div>
 
-        {/* Create Button */}
-        <Link to="/admin/productos/nuevo">
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          {/* Create Category Button */}
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 px-6 py-3 bg-gris border-2 border-verde text-verde rounded font-bold hover:bg-verde hover:text-gris transition-all duration-300"
+            onClick={() => setShowCategoryModal(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-gris border-2 border-gray-600 text-gray-300 rounded font-bold hover:border-verde hover:text-verde transition-all duration-300"
           >
             <svg
               className="w-5 h-5"
@@ -143,12 +173,36 @@ const VistaProductosAdmin = () => {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M12 4v16m8-8H4"
+                d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
               />
             </svg>
-            Crear Producto
+            Crear Categoría
           </motion.button>
-        </Link>
+
+          {/* Create Product Button */}
+          <Link to="/admin/productos/nuevo">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex items-center gap-2 px-6 py-3 bg-gris border-2 border-verde text-verde rounded font-bold hover:bg-verde hover:text-gris transition-all duration-300"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Crear Producto
+            </motion.button>
+          </Link>
+        </div>
       </motion.div>
 
       {/* Table */}
@@ -409,6 +463,73 @@ const VistaProductosAdmin = () => {
           </svg>
           <p className="text-gray-400 text-lg">No se encontraron productos</p>
         </motion.div>
+      )}
+
+      {/* Category Creation Modal */}
+      {showCategoryModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-gris rounded-lg p-8 max-w-md w-full border-2 border-gray-700"
+          >
+            <h2 className="text-2xl font-bold text-white mb-6">
+              Crear Nueva Categoría
+            </h2>
+
+            <div className="space-y-4 mb-6">
+              {/* Nombre */}
+              <div>
+                <label className="block text-white font-semibold mb-2">
+                  Nombre *
+                </label>
+                <input
+                  type="text"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Ej: Remeras, Buzos, Accesorios"
+                  className="w-full px-4 py-3 bg-azul border-2 border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-verde transition-colors"
+                />
+              </div>
+
+              {/* Descripción */}
+              <div>
+                <label className="block text-white font-semibold mb-2">
+                  Descripción (opcional)
+                </label>
+                <textarea
+                  value={newCategoryDescription}
+                  onChange={(e) => setNewCategoryDescription(e.target.value)}
+                  placeholder="Descripción de la categoría"
+                  rows={3}
+                  className="w-full px-4 py-3 bg-azul border-2 border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-verde transition-colors resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => {
+                  setShowCategoryModal(false);
+                  setNewCategoryName('');
+                  setNewCategoryDescription('');
+                }}
+                disabled={isCreatingCategory}
+                className="flex-1 px-6 py-3 bg-azul border-2 border-gray-600 text-gray-300 rounded font-bold hover:border-red-500 hover:text-red-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleCreateCategory}
+                disabled={isCreatingCategory || !newCategoryName.trim()}
+                className="flex-1 px-6 py-3 bg-verde text-gris rounded font-bold hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isCreatingCategory ? 'Creando...' : 'Crear'}
+              </button>
+            </div>
+          </motion.div>
+        </div>
       )}
     </div>
   );

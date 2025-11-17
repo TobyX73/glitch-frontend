@@ -218,7 +218,7 @@ export const categoriesAPI = {
   },
 
   // Crear categoría (admin)
-  create: async (data: Omit<Category, '_id'>): Promise<Category> => {
+  create: async (data: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>): Promise<Category> => {
     const response = await api.post<Category>('/categories', data);
     return response.data;
   },
