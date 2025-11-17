@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { productsAPI, categoriesAPI, type Product } from "../../../services/api";
+import { productsAPI, categoriesAPI, type Category } from "../../../services/api";
+import type { Product } from "../../../types/product.types";
 
 const VistaProductosAdmin = () => {
   const navigate = useNavigate();
@@ -286,7 +287,7 @@ const VistaProductosAdmin = () => {
                   <td className="px-6 py-4">
                     <div className="flex gap-1">
                       {product.variants && product.variants.length > 0 ? (
-                        product.variants.map((variant) => (
+                        product.variants.map((variant: { size: string; stock: number }) => (
                           <span
                             key={variant.size}
                             className="px-2 py-1 bg-gris border border-verde text-verde text-xs rounded font-semibold"
@@ -295,7 +296,7 @@ const VistaProductosAdmin = () => {
                           </span>
                         ))
                       ) : product.sizes && product.sizes.length > 0 ? (
-                        product.sizes.map((size) => (
+                        product.sizes.map((size: string) => (
                           <span
                             key={size}
                             className="px-2 py-1 bg-gris border border-verde text-verde text-xs rounded font-semibold"

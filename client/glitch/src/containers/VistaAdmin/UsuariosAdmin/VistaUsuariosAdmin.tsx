@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { usersAPI } from "../../../services/api";
-import { User } from "../../../types/product.types";
+import type { User } from "../../../types/product.types";
 
 const VistaUsuariosAdmin = () => {
   const navigate = useNavigate();
@@ -10,7 +10,6 @@ const VistaUsuariosAdmin = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 10;
 
   // Cargar usuarios desde el backend

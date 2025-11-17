@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import api, { productsAPI, categoriesAPI, uploadsAPI } from "../../../services/api";
+import api, { categoriesAPI, uploadsAPI } from "../../../services/api";
 import type { Category } from "../../../types/product.types";
 
 interface ProductForm {

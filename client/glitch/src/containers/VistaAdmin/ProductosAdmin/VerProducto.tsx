@@ -441,21 +441,21 @@ const VerProducto = () => {
               <div className="flex items-center gap-3">
                 <div
                   className={`w-4 h-4 rounded-full ${
-                    product.stock > 0 ? "bg-verde" : "bg-red-500"
+                    (product.stock ?? product.totalStock) > 0 ? "bg-verde" : "bg-red-500"
                   }`}
                 ></div>
                 <span className="text-white font-semibold">
-                  {product.stock > 0 ? "Activo" : "Sin Stock"}
+                  {(product.stock ?? product.totalStock) > 0 ? "Activo" : "Sin Stock"}
                 </span>
               </div>
 
-              {product.stock > 0 && (
+              {(product.stock ?? product.totalStock) > 0 && (
                 <p className="text-gray-400 text-sm">
                   El producto está visible para los clientes en la tienda
                 </p>
               )}
 
-              {product.stock === 0 && (
+              {(product.stock ?? product.totalStock) === 0 && (
                 <p className="text-gray-400 text-sm">
                   El producto no se muestra en la tienda por falta de stock
                 </p>

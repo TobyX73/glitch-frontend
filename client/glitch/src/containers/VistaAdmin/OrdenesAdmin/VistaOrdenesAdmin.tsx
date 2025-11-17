@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ordersAPI } from "../../../services/api";
-import { Order } from "../../../types/product.types";
+import type { Order } from "../../../types/product.types";
 
 const VistaOrdenesAdmin = () => {
   const navigate = useNavigate();
@@ -11,7 +11,6 @@ const VistaOrdenesAdmin = () => {
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "confirmed" | "shipped" | "cancelled">("all");
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 10;
 
   // Cargar órdenes desde el backend

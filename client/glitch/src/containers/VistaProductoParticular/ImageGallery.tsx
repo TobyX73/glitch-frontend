@@ -15,7 +15,6 @@ interface ImageGalleryProps {
 }
 
 const ImageGallery = ({ images, productName }: ImageGalleryProps) => {
-  const [thumbsSwiper, setThumbsSwiper] = useState<SwiperType | null>(null);
   const [mainSwiper, setMainSwiper] = useState<SwiperType | null>(null);
 
   // Ordenar imágenes por order, imagen principal primero
