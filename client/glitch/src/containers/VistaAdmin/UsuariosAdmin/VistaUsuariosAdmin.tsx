@@ -1,78 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  createdAt: string;
-  totalOrders: number;
-}
+import { usersAPI } from "../../../services/api";
+import { User } from "../../../types/product.types";
 
 const VistaUsuariosAdmin = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [users, setUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 10;
 
-  // TODO: Reemplazar con datos del backend
-  const mockUsers: User[] = [
-    {
-      id: 1,
-      name: "Juan Pérez",
-      email: "juan.perez@email.com",
-      phone: "+54 11 1234-5678",
-      address: "Av. Corrientes 1234, CABA",
-      createdAt: "2024-01-15",
-      totalOrders: 5,
-    },
-    {
-      id: 2,
-      name: "María González",
-      email: "maria.gonzalez@email.com",
-      phone: "+54 11 2345-6789",
-      address: "Calle Falsa 567, Buenos Aires",
-      createdAt: "2024-02-20",
-      totalOrders: 3,
-    },
-    {
-      id: 3,
-      name: "Carlos Rodríguez",
-      email: "carlos.rodriguez@email.com",
-      phone: "+54 11 3456-7890",
-      address: "San Martín 890, Rosario",
-      createdAt: "2024-03-10",
-      totalOrders: 0,
-    },
-    {
-      id: 4,
-      name: "Ana Martínez",
-      email: "ana.martinez@email.com",
-      phone: "+54 11 4567-8901",
-      address: "Belgrano 234, Córdoba",
-      createdAt: "2024-01-25",
-      totalOrders: 8,
-    },
-    {
-      id: 5,
-      name: "Luis Fernández",
-      email: "luis.fernandez@email.com",
-      phone: "+54 11 5678-9012",
-      address: "Mitre 456, Mendoza",
-      createdAt: "2024-04-05",
-      totalOrders: 2,
-    },
-  ];
+  // Cargar usuarios desde el backend
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        setIsLoading(true);
+        const response = await usersAPI.getAll();
+        // Manejar tanto arrays directos como objetos con .data
+        const users = Array.isArray(response) ? response : (response as any).data || [];
+        setUsers(users);
+        setError(null);
+      } catch (err: any) {
+        console.error('Error al cargar usuarios:', err);
+        setError('Error al cargar los usuarios');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const [users] = useState<User[]>(mockUsers);
+    loadUsers();
+  }, []);
 
   const filteredUsers = users.filter((user) => {
+    const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim();
+    const email = user.email || '';
     const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+      fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      email.toLowerCase().includes(searchTerm.toLowerCase());
 
     return matchesSearch;
   });
@@ -83,6 +50,18 @@ const VistaUsuariosAdmin = () => {
     startIndex,
     startIndex + itemsPerPage
   );
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-verde border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Cargando usuarios...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -180,10 +159,10 @@ const VistaUsuariosAdmin = () => {
                   Usuario
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-bold text-verde uppercase tracking-wider">
-                  Contacto
+                  Email
                 </th>
                 <th className="px-6 py-4 text-left text-sm font-bold text-verde uppercase tracking-wider">
-                  Órdenes
+                  Fecha Registro
                 </th>
                 <th className="px-6 py-4 text-center text-sm font-bold text-verde uppercase tracking-wider">
                   Acciones
@@ -193,7 +172,7 @@ const VistaUsuariosAdmin = () => {
             <tbody className="divide-y divide-gray-700">
               {paginatedUsers.map((user, index) => (
                 <motion.tr
-                  key={user.id}
+                  key={user._id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -203,29 +182,25 @@ const VistaUsuariosAdmin = () => {
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-verde bg-opacity-20 rounded-full flex items-center justify-center">
                         <span className="text-verde font-bold text-lg">
-                          {user.name.charAt(0)}
+                          {user.firstName ? user.firstName.charAt(0) : '?'}
                         </span>
                       </div>
                       <div>
                         <div className="text-white font-semibold">
-                          {user.name}
+                          {user.firstName || ''} {user.lastName || ''}
                         </div>
                         <div className="text-gray-400 text-sm">
-                          ID: #{user.id}
+                          {user.role === 'admin' ? 'Administrador' : 'Usuario'}
                         </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-white text-sm">{user.email}</div>
-                    <div className="text-gray-400 text-sm">{user.phone}</div>
+                    <div className="text-white text-sm">{user.email || 'N/A'}</div>
                   </td>
                   <td className="px-6 py-4">
-                    <div className="text-white font-semibold">
-                      {user.totalOrders} órdenes
-                    </div>
                     <div className="text-gray-400 text-sm">
-                      Desde {new Date(user.createdAt).toLocaleDateString("es-AR")}
+                      Desde {user.createdAt ? new Date(user.createdAt).toLocaleDateString("es-AR") : 'N/A'}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -234,7 +209,7 @@ const VistaUsuariosAdmin = () => {
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => navigate(`/admin/usuarios/${user.id}`)}
+                        onClick={() => user._id && navigate(`/admin/usuarios/${user._id}`)}
                         className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-verde hover:text-verde transition-colors"
                         title="Ver detalles y órdenes"
                       >

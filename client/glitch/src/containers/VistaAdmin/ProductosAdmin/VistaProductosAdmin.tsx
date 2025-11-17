@@ -1,50 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  images: string[];
-  sizes: string[];
-  category: string;
-}
+import { productsAPI, type Product } from "../../../services/api";
 
 const VistaProductosAdmin = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 10;
 
-  // TODO: Reemplazar con datos del backend
-  const mockProducts: Product[] = [
-    {
-      id: 1,
-      name: "Remera Cyberpunk 2077",
-      description: "Remera de algodón con diseño exclusivo",
-      price: 15000,
-      stock: 25,
-      images: ["/productos/remera1.jpg"],
-      sizes: ["S", "M", "L", "XL"],
-      category: "Remeras",
-    },
-    {
-      id: 2,
-      name: "Hoodie GTA V",
-      description: "Buzo con capucha estampado",
-      price: 28000,
-      stock: 15,
-      images: ["/productos/hoodie1.jpg"],
-      sizes: ["M", "L", "XL", "XXL"],
-      category: "Buzos",
-    },
-    // Agregar más productos de prueba...
-  ];
+  // Cargar productos desde el backend
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setIsLoading(true);
+        const response = await productsAPI.getAll();
+        // Manejar tanto arrays directos como objetos con .data
+        const products = Array.isArray(response) ? response : (response as any).data || [];
+        setProducts(products);
+        setError(null);
+      } catch (err: any) {
+        console.error('Error al cargar productos:', err);
+        setError('Error al cargar los productos');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const [products] = useState<Product[]>(mockProducts);
+    loadProducts();
+  }, []);
 
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -57,12 +44,30 @@ const VistaProductosAdmin = () => {
     startIndex + itemsPerPage
   );
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm("¿Estás seguro de eliminar este producto?")) {
-      // TODO: Implementar delete con backend
-      console.log("Eliminar producto:", id);
+      try {
+        await productsAPI.delete(id);
+        // Actualizar lista eliminando el producto
+        setProducts(products.filter(p => p._id !== id));
+      } catch (err: any) {
+        console.error('Error al eliminar producto:', err);
+        alert('Error al eliminar el producto');
+      }
     }
   };
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-verde border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Cargando productos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -78,6 +83,17 @@ const VistaProductosAdmin = () => {
         </h1>
         <p className="text-gray-400">Administrá el catálogo de productos</p>
       </motion.div>
+
+      {/* Error message */}
+      {error && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mb-6 p-4 bg-red-500 bg-opacity-20 border border-red-500 rounded text-red-500"
+        >
+          {error}
+        </motion.div>
+      )}
 
       {/* Actions Bar */}
       <motion.div
@@ -169,7 +185,7 @@ const VistaProductosAdmin = () => {
             <tbody className="divide-y divide-gray-700">
               {paginatedProducts.map((product, index) => (
                 <motion.tr
-                  key={product.id}
+                  key={product._id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -177,7 +193,7 @@ const VistaProductosAdmin = () => {
                 >
                   <td className="px-6 py-4">
                     <img
-                      src={product.images[0] || "/placeholder.jpg"}
+                      src={(product.images && product.images[0]) || "/placeholder.jpg"}
                       alt={product.name}
                       className="w-16 h-16 object-cover rounded border border-gray-600"
                     />
@@ -187,7 +203,7 @@ const VistaProductosAdmin = () => {
                       {product.name}
                     </div>
                     <div className="text-gray-400 text-sm">
-                      {product.category}
+                      {typeof product.category === 'object' ? product.category.name : product.category}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-verde font-semibold">
@@ -206,14 +222,18 @@ const VistaProductosAdmin = () => {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-1">
-                      {product.sizes.map((size) => (
-                        <span
-                          key={size}
-                          className="px-2 py-1 bg-azul border border-verde text-verde text-xs rounded"
-                        >
-                          {size}
-                        </span>
-                      ))}
+                      {product.sizes && product.sizes.length > 0 ? (
+                        product.sizes.map((size) => (
+                          <span
+                            key={size}
+                            className="px-2 py-1 bg-azul border border-verde text-verde text-xs rounded"
+                          >
+                            {size}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-gray-500 text-sm">Sin talles</span>
+                      )}
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -223,7 +243,7 @@ const VistaProductosAdmin = () => {
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() =>
-                          navigate(`/admin/productos/${product.id}`)
+                          navigate(`/admin/productos/${product._id}`)
                         }
                         className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-verde hover:text-verde transition-colors"
                         title="Ver detalles"
@@ -254,7 +274,7 @@ const VistaProductosAdmin = () => {
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() =>
-                          navigate(`/admin/productos/editar/${product.id}`)
+                          navigate(`/admin/productos/editar/${product._id}`)
                         }
                         className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-verde hover:text-verde transition-colors"
                         title="Editar"
@@ -278,7 +298,7 @@ const VistaProductosAdmin = () => {
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => handleDelete(product.id)}
+                        onClick={() => handleDelete(product._id)}
                         className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-red-500 hover:text-red-500 transition-colors"
                         title="Eliminar"
                       >

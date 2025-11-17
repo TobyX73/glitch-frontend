@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom"
 import Navbar from "./navbar"
 import Footer from "./Footer"
+import ProtectedRoute from "./ProtectedRoute"
 import VistaIndexProducto from "../containers/VistaProducto/VistaIndexProducto"
 import { VistaHome } from "../containers/VistaHome/VistaIndexHome"
 import VistaIndexClientes from "../containers/VistaClientes/VistaIndexClientes"
@@ -21,11 +22,13 @@ import VerUsuario from "../containers/VistaAdmin/UsuariosAdmin/VerUsuario"
 import VistaOrdenesAdmin from "../containers/VistaAdmin/OrdenesAdmin/VistaOrdenesAdmin"
 import VerOrden from "../containers/VistaAdmin/OrdenesAdmin/VerOrden"
 import { CartProvider } from "../context/CartContext"
+import { AuthProvider } from "../context/AuthContext"
 
 function App() {
   return (
-    <CartProvider>
-      <Router>
+    <AuthProvider>
+      <CartProvider>
+        <Router>
         <Routes>
           {/* Rutas públicas con Navbar y Footer */}
           <Route path="/" element={
@@ -94,8 +97,12 @@ function App() {
           <Route path="/register" element={<VistaIndexRegister />} />
           <Route path="/login" element={<VistaIndexLogin />} />
 
-          {/* Rutas de Admin sin Navbar ni Footer */}
-          <Route path="/admin" element={<VistaIndexAdmin />}>
+          {/* Rutas de Admin protegidas - Solo para administradores */}
+          <Route path="/admin" element={
+            <ProtectedRoute requireAdmin>
+              <VistaIndexAdmin />
+            </ProtectedRoute>
+          }>
             <Route index element={<AdminDashboard />} />
             <Route path="productos" element={<VistaProductosAdmin />} />
             <Route path="productos/nuevo" element={<CrearProducto />} />
@@ -108,7 +115,8 @@ function App() {
           </Route>
         </Routes>
       </Router>
-    </CartProvider>
+      </CartProvider>
+    </AuthProvider>
   )
 }
 

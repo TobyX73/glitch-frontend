@@ -1,119 +1,59 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
-interface Order {
-  id: number;
-  orderNumber: string;
-  customerName: string;
-  customerEmail: string;
-  date: string;
-  status: "pending" | "confirmed" | "cancelled";
-  totalProducts: number;
-  total: number;
-}
+import { ordersAPI } from "../../../services/api";
+import { Order } from "../../../types/product.types";
 
 const VistaOrdenesAdmin = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "confirmed" | "cancelled">("all");
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 10;
 
-  // TODO: Reemplazar con datos del backend
-  const mockOrders: Order[] = [
-    {
-      id: 1,
-      orderNumber: "ORD-2024-001",
-      customerName: "Juan Pérez",
-      customerEmail: "juan.perez@email.com",
-      date: "2024-11-14T10:30:00",
-      status: "pending",
-      totalProducts: 2,
-      total: 28000,
-    },
-    {
-      id: 2,
-      orderNumber: "ORD-2024-002",
-      customerName: "María González",
-      customerEmail: "maria.gonzalez@email.com",
-      date: "2024-11-14T09:15:00",
-      status: "pending",
-      totalProducts: 1,
-      total: 15000,
-    },
-    {
-      id: 3,
-      orderNumber: "ORD-2024-003",
-      customerName: "Carlos Rodríguez",
-      customerEmail: "carlos.rodriguez@email.com",
-      date: "2024-11-13T16:45:00",
-      status: "pending",
-      totalProducts: 3,
-      total: 45000,
-    },
-    {
-      id: 4,
-      orderNumber: "ORD-2024-004",
-      customerName: "Ana Martínez",
-      customerEmail: "ana.martinez@email.com",
-      date: "2024-11-13T14:20:00",
-      status: "confirmed",
-      totalProducts: 2,
-      total: 32000,
-    },
-    {
-      id: 5,
-      orderNumber: "ORD-2024-005",
-      customerName: "Luis Fernández",
-      customerEmail: "luis.fernandez@email.com",
-      date: "2024-11-12T11:00:00",
-      status: "confirmed",
-      totalProducts: 1,
-      total: 20000,
-    },
-    {
-      id: 6,
-      orderNumber: "ORD-2024-006",
-      customerName: "Sofía López",
-      customerEmail: "sofia.lopez@email.com",
-      date: "2024-11-12T08:30:00",
-      status: "confirmed",
-      totalProducts: 4,
-      total: 60000,
-    },
-    {
-      id: 7,
-      orderNumber: "ORD-2024-007",
-      customerName: "Diego Torres",
-      customerEmail: "diego.torres@email.com",
-      date: "2024-11-11T15:00:00",
-      status: "cancelled",
-      totalProducts: 2,
-      total: 25000,
-    },
-    {
-      id: 8,
-      orderNumber: "ORD-2024-008",
-      customerName: "Laura Sánchez",
-      customerEmail: "laura.sanchez@email.com",
-      date: "2024-11-10T12:45:00",
-      status: "cancelled",
-      totalProducts: 1,
-      total: 18000,
-    },
-  ];
+  // Cargar órdenes desde el backend
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        setIsLoading(true);
+        const response = await ordersAPI.getAll();
+        // Manejar tanto arrays directos como objetos con .data
+        const orders = Array.isArray(response) ? response : (response as any).data || [];
+        console.log('📦 Órdenes recibidas:', orders);
+        console.log('📦 Primera orden (detalle):', orders[0]);
+        setOrders(orders);
+        setError(null);
+      } catch (err: any) {
+        console.error('Error al cargar órdenes:', err);
+        setError('Error al cargar las órdenes');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+    loadOrders();
+  }, []);
 
   // Función para ordenar por prioridad de estado
   const sortByPriority = (a: Order, b: Order) => {
-    const priorityMap = { pending: 1, confirmed: 2, cancelled: 3 };
+    const priorityMap: Record<Order["status"], number> = {
+      PENDING: 1,
+      PAYMENT_PENDING: 2,
+      PAID: 3,
+      PREPARING: 4,
+      SHIPPED: 5,
+      DELIVERED: 6,
+      CANCELLED: 7,
+      REFUNDED: 8
+    };
     const priorityDiff = priorityMap[a.status] - priorityMap[b.status];
     
     // Si tienen el mismo estado, ordenar por fecha (más reciente primero)
     if (priorityDiff === 0) {
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
     
     return priorityDiff;
@@ -121,11 +61,14 @@ const VistaOrdenesAdmin = () => {
 
   const filteredOrders = orders
     .filter((order) => {
+      const customerName = order.guestName || 'Usuario invitado';
+      const orderId = order.id ? order.id.toString() : '';
       const matchesSearch =
-        order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+        orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (order.guestEmail && order.guestEmail.toLowerCase().includes(searchTerm.toLowerCase()));
 
-      const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+      const matchesStatus = statusFilter === "all" || order.status === statusFilter.toUpperCase();
 
       return matchesSearch && matchesStatus;
     })
@@ -140,38 +83,75 @@ const VistaOrdenesAdmin = () => {
 
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
-      case "pending":
+      case "PENDING":
+      case "PAYMENT_PENDING":
         return "bg-yellow-500 bg-opacity-20 text-yellow-400 border-yellow-500";
-      case "confirmed":
+      case "PAID":
+      case "PREPARING":
+      case "SHIPPED":
+      case "DELIVERED":
         return "bg-verde bg-opacity-20 text-verde border-verde";
-      case "cancelled":
+      case "CANCELLED":
+      case "REFUNDED":
         return "bg-red-500 bg-opacity-20 text-red-400 border-red-500";
+      default:
+        return "bg-gray-500 bg-opacity-20 text-gray-400 border-gray-500";
     }
   };
 
   const getStatusText = (status: Order["status"]) => {
     switch (status) {
-      case "pending":
-        return "En Confirmación";
-      case "confirmed":
-        return "Confirmada";
-      case "cancelled":
+      case "PENDING":
+        return "Pendiente";
+      case "PAYMENT_PENDING":
+        return "Pago Pendiente";
+      case "PAID":
+        return "Pagada";
+      case "PREPARING":
+        return "En Preparación";
+      case "SHIPPED":
+        return "Enviada";
+      case "DELIVERED":
+        return "Entregada";
+      case "CANCELLED":
         return "Cancelada";
+      case "REFUNDED":
+        return "Reembolsada";
+      default:
+        return status;
     }
   };
 
-  const handleStatusChange = async (orderId: number, newStatus: "confirmed" | "cancelled") => {
-    // TODO: Implementar actualización de estado en el backend
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
+  const handleStatusChange = async (orderId: string, newStatus: "confirmed" | "cancelled") => {
+    try {
+      await ordersAPI.updateStatus(orderId, newStatus);
+      // Actualizar estado local
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order._id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+    } catch (err: any) {
+      console.error('Error al actualizar estado:', err);
+      alert('Error al actualizar el estado de la orden');
+    }
   };
 
-  const pendingCount = orders.filter((o) => o.status === "pending").length;
-  const confirmedCount = orders.filter((o) => o.status === "confirmed").length;
-  const cancelledCount = orders.filter((o) => o.status === "cancelled").length;
+  const pendingCount = orders.filter((o) => o.status === "PENDING" || o.status === "PAYMENT_PENDING").length;
+  const confirmedCount = orders.filter((o) => o.status === "PAID" || o.status === "PREPARING" || o.status === "SHIPPED").length;
+  const cancelledCount = orders.filter((o) => o.status === "CANCELLED" || o.status === "REFUNDED").length;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-verde border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Cargando órdenes...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -413,7 +393,7 @@ const VistaOrdenesAdmin = () => {
             <tbody className="divide-y divide-gray-700">
               {paginatedOrders.map((order, index) => (
                 <motion.tr
-                  key={order.id}
+                  key={order._id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
@@ -421,43 +401,43 @@ const VistaOrdenesAdmin = () => {
                 >
                   <td className="px-6 py-4">
                     <div className="text-verde font-bold">
-                      {order.orderNumber}
+                      #{order.id ? String(order.id).padStart(8, '0') : 'N/A'}
                     </div>
-                    <div className="text-gray-400 text-sm">ID: #{order.id}</div>
+                    <div className="text-gray-400 text-sm">ID: {order.id || 'N/A'}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-white font-semibold">
-                      {order.customerName}
+                      {order.guestName || 'Usuario invitado'}
                     </div>
                     <div className="text-gray-400 text-sm">
-                      {order.customerEmail}
+                      {order.guestEmail || 'N/A'}
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-white">
-                      {new Date(order.date).toLocaleDateString("es-AR")}
+                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString("es-AR") : 'N/A'}
                     </div>
                     <div className="text-gray-400 text-sm">
-                      {new Date(order.date).toLocaleTimeString("es-AR", {
+                      {order.createdAt ? new Date(order.createdAt).toLocaleTimeString("es-AR", {
                         hour: "2-digit",
                         minute: "2-digit",
-                      })}
+                      }) : ''}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-white font-semibold">
-                    {order.totalProducts}{" "}
-                    {order.totalProducts === 1 ? "producto" : "productos"}
+                    {order.items?.length || 0}{" "}
+                    {(order.items?.length || 0) === 1 ? "producto" : "productos"}
                   </td>
                   <td className="px-6 py-4 text-verde font-bold text-lg">
-                    ${order.total.toLocaleString()}
+                    ${order.total ? order.total.toLocaleString() : '0'}
                   </td>
                   <td className="px-6 py-4">
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-semibold border-2 ${getStatusColor(
-                        order.status
+                        order.status || 'pending'
                       )}`}
                     >
-                      {getStatusText(order.status)}
+                      {getStatusText(order.status || 'pending')}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -466,7 +446,7 @@ const VistaOrdenesAdmin = () => {
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => navigate(`/admin/ordenes/${order.id}`)}
+                        onClick={() => order.id && navigate(`/admin/ordenes/${order.id}`)}
                         className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-verde hover:text-verde transition-colors"
                         title="Ver detalles"
                       >
@@ -492,11 +472,11 @@ const VistaOrdenesAdmin = () => {
                       </motion.button>
 
                       {/* Confirmar (solo si está pendiente) */}
-                      {order.status === "pending" && (
+                      {(order.status === "PENDING" || order.status === "PAYMENT_PENDING") && (
                         <motion.button
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
-                          onClick={() => handleStatusChange(order.id, "confirmed")}
+                          onClick={() => order.id && handleStatusChange(order.id.toString(), "PAID")}
                           className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-verde hover:text-verde transition-colors"
                           title="Confirmar orden"
                         >
@@ -516,14 +496,14 @@ const VistaOrdenesAdmin = () => {
                         </motion.button>
                       )}
 
-                      {/* Cancelar (solo si está pendiente o confirmada) */}
-                      {(order.status === "pending" || order.status === "confirmed") && (
+                      {/* Cancelar (solo si NO está cancelada ni completada) */}
+                      {(order.status === "PENDING" || order.status === "PAYMENT_PENDING" || order.status === "PAID" || order.status === "PREPARING") && (
                         <motion.button
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => {
                             if (window.confirm("¿Estás seguro de cancelar esta orden?")) {
-                              handleStatusChange(order.id, "cancelled");
+                              order.id && handleStatusChange(order.id.toString(), "CANCELLED");
                             }
                           }}
                           className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-red-500 hover:text-red-500 transition-colors"

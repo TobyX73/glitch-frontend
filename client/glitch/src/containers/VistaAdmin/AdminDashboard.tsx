@@ -1,14 +1,79 @@
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { productsAPI, ordersAPI, usersAPI } from "../../services/api";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    pendingOrders: 0,
+    totalUsers: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
 
-  // TODO: Reemplazar con datos reales del backend
-  const stats = [
+  // Cargar estadísticas desde el backend
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        console.log('🔄 AdminDashboard - Iniciando carga de estadísticas...');
+        setIsLoading(true);
+        
+        // Cargar datos en paralelo
+        console.log('📡 Llamando a las APIs...');
+        const [products, orders, users] = await Promise.all([
+          productsAPI.getAll(),
+          ordersAPI.getAll(),
+          usersAPI.getAll(),
+        ]);
+
+        console.log('✅ Datos recibidos:');
+        console.log('  - Productos:', products);
+        console.log('  - Productos (tipo):', typeof products, 'isArray:', Array.isArray(products));
+        console.log('  - Órdenes:', orders);
+        console.log('  - Órdenes (tipo):', typeof orders, 'isArray:', Array.isArray(orders));
+        console.log('  - Usuarios:', users);
+        console.log('  - Usuarios (tipo):', typeof users, 'isArray:', Array.isArray(users));
+
+        // Si no son arrays, intentar acceder a .data
+        const productsArray = Array.isArray(products) ? products : (products as any).data || [];
+        const ordersArray = Array.isArray(orders) ? orders : (orders as any).data || [];
+        const usersArray = Array.isArray(users) ? users : (users as any).data || [];
+
+        console.log('🔧 Arrays procesados:');
+        console.log('  - productsArray:', productsArray);
+        console.log('  - ordersArray:', ordersArray);
+        console.log('  - usersArray:', usersArray);
+
+        // Contar órdenes pendientes (PENDING y PAYMENT_PENDING)
+        const pendingOrders = ordersArray.filter(
+          (order: any) => order.status === 'PENDING' || order.status === 'PAYMENT_PENDING'
+        ).length;
+
+        const newStats = {
+          totalProducts: productsArray.length,
+          pendingOrders: pendingOrders,
+          totalUsers: usersArray.length,
+        };
+
+        console.log('📊 Estadísticas calculadas:', newStats);
+        setStats(newStats);
+      } catch (error) {
+        console.error('❌ Error al cargar estadísticas:', error);
+        console.error('Detalles del error:', error);
+      } finally {
+        console.log('🏁 Finalizando carga (isLoading = false)');
+        setIsLoading(false);
+      }
+    };
+
+    loadStats();
+  }, []);
+
+  const statsCards = [
     {
       title: "Productos",
-      count: 125,
+      count: stats.totalProducts,
       icon: (
         <svg
           className="w-12 h-12"
@@ -29,7 +94,7 @@ const AdminDashboard = () => {
     },
     {
       title: "Órdenes Pendientes",
-      count: 8,
+      count: stats.pendingOrders,
       icon: (
         <svg
           className="w-12 h-12"
@@ -50,7 +115,7 @@ const AdminDashboard = () => {
     },
     {
       title: "Usuarios Registrados",
-      count: 45,
+      count: stats.totalUsers,
       icon: (
         <svg
           className="w-12 h-12"
@@ -88,9 +153,19 @@ const AdminDashboard = () => {
         </p>
       </motion.div>
 
-      {/* Tarjetas de estadísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {stats.map((stat, index) => (
+      {/* Loading state */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-verde border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-400">Cargando estadísticas...</p>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Tarjetas de estadísticas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {statsCards.map((stat, index) => (
           <motion.div
             key={stat.title}
             initial={{ opacity: 0, y: 20 }}
@@ -190,6 +265,8 @@ const AdminDashboard = () => {
           </motion.button>
         </div>
       </motion.div>
+        </>
+      )}
     </div>
   );
 };

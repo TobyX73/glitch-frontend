@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { productsAPI, categoriesAPI } from "../../../services/api";
+import type { Category } from "../../../types/product.types";
 
 interface ProductForm {
   name: string;
@@ -28,9 +30,29 @@ const CrearProducto = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
   const availableSizes = ["S", "M", "L", "XL", "XXL"];
-  const categories = ["Remeras", "Buzos", "Accesorios", "Otros"];
+
+  // Cargar categorías desde el backend
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await categoriesAPI.getAll();
+        // Manejar tanto arrays directos como objetos con .data
+        const categories = Array.isArray(response) ? response : (response as any).data || [];
+        setCategories(categories);
+      } catch (err) {
+        console.error('Error al cargar categorías:', err);
+        setErrors({ categories: 'Error al cargar las categorías' });
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+
+    loadCategories();
+  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<
@@ -146,7 +168,7 @@ const CrearProducto = () => {
     setIsSubmitting(true);
 
     try {
-      // TODO: Implementar POST al backend con FormData
+      // Crear FormData para enviar archivos
       const formDataToSend = new FormData();
       formDataToSend.append("name", formData.name);
       formDataToSend.append("description", formData.description);
@@ -155,28 +177,21 @@ const CrearProducto = () => {
       formDataToSend.append("category", formData.category);
       formDataToSend.append("sizes", JSON.stringify(formData.sizes));
 
-      formData.images.forEach((image, index) => {
-        formDataToSend.append(`image${index}`, image);
+      // Agregar imágenes
+      formData.images.forEach((image) => {
+        formDataToSend.append("images", image);
       });
 
-      console.log("FormData to send:", {
-        name: formData.name,
-        description: formData.description,
-        price: formData.price,
-        stock: formData.stock,
-        category: formData.category,
-        sizes: formData.sizes,
-        images: formData.images.length,
-      });
-
-      // Simular delay de API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Enviar al backend usando endpoint específico para FormData
+      await productsAPI.createWithImages(formDataToSend);
 
       // Redirigir al listado
       navigate("/admin/productos");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error al crear producto:", error);
-      setErrors({ submit: "Error al crear el producto. Intentá nuevamente." });
+      setErrors({ 
+        submit: error.response?.data?.message || "Error al crear el producto. Intentá nuevamente." 
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -310,14 +325,17 @@ const CrearProducto = () => {
                 name="category"
                 value={formData.category}
                 onChange={handleInputChange}
+                disabled={isLoadingCategories}
                 className={`w-full px-4 py-3 bg-azul border-2 ${
                   errors.category ? "border-red-500" : "border-gray-600"
-                } rounded text-white focus:outline-none focus:border-verde transition-colors`}
+                } rounded text-white focus:outline-none focus:border-verde transition-colors disabled:opacity-50`}
               >
-                <option value="">Seleccioná una categoría</option>
+                <option value="">
+                  {isLoadingCategories ? 'Cargando...' : 'Seleccioná una categoría'}
+                </option>
                 {categories.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
                   </option>
                 ))}
               </select>
