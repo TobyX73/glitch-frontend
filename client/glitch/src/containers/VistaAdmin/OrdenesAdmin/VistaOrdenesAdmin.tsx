@@ -1,119 +1,65 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
-interface Order {
-  id: number;
-  orderNumber: string;
-  customerName: string;
-  customerEmail: string;
-  date: string;
-  status: "pending" | "confirmed" | "cancelled";
-  totalProducts: number;
-  total: number;
-}
+import { ordersAPI } from "../../../services/api";
+import { Order } from "../../../types/product.types";
 
 const VistaOrdenesAdmin = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "confirmed" | "cancelled">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "confirmed" | "shipped" | "cancelled">("all");
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const itemsPerPage = 10;
 
-  // TODO: Reemplazar con datos del backend
-  const mockOrders: Order[] = [
-    {
-      id: 1,
-      orderNumber: "ORD-2024-001",
-      customerName: "Juan Pérez",
-      customerEmail: "juan.perez@email.com",
-      date: "2024-11-14T10:30:00",
-      status: "pending",
-      totalProducts: 2,
-      total: 28000,
-    },
-    {
-      id: 2,
-      orderNumber: "ORD-2024-002",
-      customerName: "María González",
-      customerEmail: "maria.gonzalez@email.com",
-      date: "2024-11-14T09:15:00",
-      status: "pending",
-      totalProducts: 1,
-      total: 15000,
-    },
-    {
-      id: 3,
-      orderNumber: "ORD-2024-003",
-      customerName: "Carlos Rodríguez",
-      customerEmail: "carlos.rodriguez@email.com",
-      date: "2024-11-13T16:45:00",
-      status: "pending",
-      totalProducts: 3,
-      total: 45000,
-    },
-    {
-      id: 4,
-      orderNumber: "ORD-2024-004",
-      customerName: "Ana Martínez",
-      customerEmail: "ana.martinez@email.com",
-      date: "2024-11-13T14:20:00",
-      status: "confirmed",
-      totalProducts: 2,
-      total: 32000,
-    },
-    {
-      id: 5,
-      orderNumber: "ORD-2024-005",
-      customerName: "Luis Fernández",
-      customerEmail: "luis.fernandez@email.com",
-      date: "2024-11-12T11:00:00",
-      status: "confirmed",
-      totalProducts: 1,
-      total: 20000,
-    },
-    {
-      id: 6,
-      orderNumber: "ORD-2024-006",
-      customerName: "Sofía López",
-      customerEmail: "sofia.lopez@email.com",
-      date: "2024-11-12T08:30:00",
-      status: "confirmed",
-      totalProducts: 4,
-      total: 60000,
-    },
-    {
-      id: 7,
-      orderNumber: "ORD-2024-007",
-      customerName: "Diego Torres",
-      customerEmail: "diego.torres@email.com",
-      date: "2024-11-11T15:00:00",
-      status: "cancelled",
-      totalProducts: 2,
-      total: 25000,
-    },
-    {
-      id: 8,
-      orderNumber: "ORD-2024-008",
-      customerName: "Laura Sánchez",
-      customerEmail: "laura.sanchez@email.com",
-      date: "2024-11-10T12:45:00",
-      status: "cancelled",
-      totalProducts: 1,
-      total: 18000,
-    },
-  ];
+  // Cargar órdenes desde el backend
+  useEffect(() => {
+    const loadOrders = async () => {
+      try {
+        setIsLoading(true);
+        const response = await ordersAPI.getAll();
+        // Manejar tanto arrays directos como objetos con .data
+        const orders = Array.isArray(response) ? response : (response as any).data || [];
+        console.log('📦 Órdenes recibidas:', orders);
+        console.log('📦 Primera orden (detalle):', orders[0]);
+        if (orders[0]) {
+          console.log('👤 userId:', orders[0].userId);
+          console.log('👤 user objeto:', orders[0].user);
+          console.log('👤 guestName:', orders[0].guestName);
+          console.log('👤 guestEmail:', orders[0].guestEmail);
+        }
+        setOrders(orders);
+        setError(null);
+      } catch (err: any) {
+        console.error('Error al cargar órdenes:', err);
+        setError('Error al cargar las órdenes');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+    loadOrders();
+  }, []);
 
   // Función para ordenar por prioridad de estado
   const sortByPriority = (a: Order, b: Order) => {
-    const priorityMap = { pending: 1, confirmed: 2, cancelled: 3 };
+    const priorityMap: Record<Order["status"], number> = {
+      PENDING: 1,
+      PAYMENT_PENDING: 2,
+      PREPARING: 3,  // PREPARING ahora tiene prioridad 3
+      PAID: 4,       // PAID ahora es 4
+      SHIPPED: 5,
+      DELIVERED: 6,
+      CANCELLED: 7,
+      REFUNDED: 8
+    };
     const priorityDiff = priorityMap[a.status] - priorityMap[b.status];
     
     // Si tienen el mismo estado, ordenar por fecha (más reciente primero)
     if (priorityDiff === 0) {
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     }
     
     return priorityDiff;
@@ -121,11 +67,29 @@ const VistaOrdenesAdmin = () => {
 
   const filteredOrders = orders
     .filter((order) => {
+      // Priorizar usuario registrado, luego invitado
+      const customerName = order.user 
+        ? `${order.user.firstName} ${order.user.lastName}`.trim()
+        : order.guestName || 'Usuario invitado';
+      const customerEmail = order.user?.email || order.guestEmail || '';
+      const orderId = order.id ? order.id.toString() : '';
       const matchesSearch =
-        order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        order.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+        orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customerEmail.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesStatus = statusFilter === "all" || order.status === statusFilter;
+      let matchesStatus = false;
+      if (statusFilter === "all") {
+        matchesStatus = true;
+      } else if (statusFilter === "pending") {
+        matchesStatus = order.status === "PENDING" || order.status === "PAYMENT_PENDING";
+      } else if (statusFilter === "confirmed") {
+        matchesStatus = order.status === "PAID" || order.status === "PREPARING";
+      } else if (statusFilter === "shipped") {
+        matchesStatus = order.status === "SHIPPED" || order.status === "DELIVERED";
+      } else if (statusFilter === "cancelled") {
+        matchesStatus = order.status === "CANCELLED" || order.status === "REFUNDED";
+      }
 
       return matchesSearch && matchesStatus;
     })
@@ -140,38 +104,77 @@ const VistaOrdenesAdmin = () => {
 
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
-      case "pending":
-        return "bg-yellow-500 bg-opacity-20 text-yellow-400 border-yellow-500";
-      case "confirmed":
-        return "bg-verde bg-opacity-20 text-verde border-verde";
-      case "cancelled":
-        return "bg-red-500 bg-opacity-20 text-red-400 border-red-500";
+      case "PENDING":
+      case "PAYMENT_PENDING":
+        return "bg-yellow-500 text-black border-yellow-500";
+      case "PAID":
+      case "PREPARING":
+        return "bg-verde text-black border-verde";
+      case "SHIPPED":
+      case "DELIVERED":
+        return "bg-azul-oscuro text-black border-azul-oscuro";
+      case "CANCELLED":
+      case "REFUNDED":
+        return "bg-red-500 text-black border-red-500";
+      default:
+        return "bg-gray-500 text-black border-gray-500";
     }
   };
 
   const getStatusText = (status: Order["status"]) => {
     switch (status) {
-      case "pending":
-        return "En Confirmación";
-      case "confirmed":
-        return "Confirmada";
-      case "cancelled":
+      case "PENDING":
+        return "Pendiente";
+      case "PAYMENT_PENDING":
+        return "Pago Pendiente";
+      case "PAID":
+        return "Pagada";
+      case "PREPARING":
+        return "En Preparación";
+      case "SHIPPED":
+        return "Enviada";
+      case "DELIVERED":
+        return "Entregada";
+      case "CANCELLED":
         return "Cancelada";
+      case "REFUNDED":
+        return "Reembolsada";
+      default:
+        return status;
     }
   };
 
-  const handleStatusChange = async (orderId: number, newStatus: "confirmed" | "cancelled") => {
-    // TODO: Implementar actualización de estado en el backend
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
+  const handleStatusChange = async (orderId: string, newStatus: string) => {
+    try {
+      await ordersAPI.updateStatus(orderId, newStatus);
+      // Actualizar estado local
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id.toString() === orderId ? { ...order, status: newStatus as Order['status'] } : order
+        )
+      );
+    } catch (err: any) {
+      console.error('Error al actualizar estado:', err);
+      alert('Error al actualizar el estado de la orden');
+    }
   };
 
-  const pendingCount = orders.filter((o) => o.status === "pending").length;
-  const confirmedCount = orders.filter((o) => o.status === "confirmed").length;
-  const cancelledCount = orders.filter((o) => o.status === "cancelled").length;
+  const pendingCount = orders.filter((o) => o.status === "PENDING" || o.status === "PAYMENT_PENDING").length;
+  const confirmedCount = orders.filter((o) => o.status === "PAID" || o.status === "PREPARING").length;
+  const shippedCount = orders.filter((o) => o.status === "SHIPPED" || o.status === "DELIVERED").length;
+  const cancelledCount = orders.filter((o) => o.status === "CANCELLED" || o.status === "REFUNDED").length;
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-verde border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Cargando órdenes...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -195,7 +198,7 @@ const VistaOrdenesAdmin = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.1 }}
-        className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+        className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8"
       >
         <div className="bg-gris border-2 border-verde rounded-lg p-6">
           <div className="flex items-center justify-between">
@@ -205,7 +208,7 @@ const VistaOrdenesAdmin = () => {
             </div>
             <div className="p-4 bg-verde bg-opacity-20 rounded-lg">
               <svg
-                className="w-8 h-8 text-verde"
+                className="w-8 h-8 text-black"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -231,7 +234,7 @@ const VistaOrdenesAdmin = () => {
             </div>
             <div className="p-4 bg-yellow-500 bg-opacity-20 rounded-lg">
               <svg
-                className="w-8 h-8 text-yellow-400"
+                className="w-8 h-8 text-black"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -257,7 +260,7 @@ const VistaOrdenesAdmin = () => {
             </div>
             <div className="p-4 bg-verde bg-opacity-20 rounded-lg">
               <svg
-                className="w-8 h-8 text-verde"
+                className="w-8 h-8 text-black"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -267,6 +270,32 @@ const VistaOrdenesAdmin = () => {
                   strokeLinejoin="round"
                   strokeWidth={2}
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-gris border-2 border-azul-oscuro rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-gray-400 text-sm mb-1">Enviadas</p>
+              <p className="text-3xl font-bold text-azul-oscuro">
+                {shippedCount}
+              </p>
+            </div>
+            <div className="p-4 bg-azul-oscuro bg-opacity-20 rounded-lg">
+              <svg
+                className="w-8 h-8 text-black"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"
                 />
               </svg>
             </div>
@@ -283,7 +312,7 @@ const VistaOrdenesAdmin = () => {
             </div>
             <div className="p-4 bg-red-500 bg-opacity-20 rounded-lg">
               <svg
-                className="w-8 h-8 text-red-400"
+                className="w-8 h-8 text-black"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -364,6 +393,16 @@ const VistaOrdenesAdmin = () => {
             Confirmadas ({confirmedCount})
           </button>
           <button
+            onClick={() => setStatusFilter("shipped")}
+            className={`px-4 py-2 rounded font-semibold transition-all ${
+              statusFilter === "shipped"
+                ? "bg-azul-oscuro text-white"
+                : "bg-gris border border-gray-600 text-gray-300 hover:border-azul-oscuro"
+            }`}
+          >
+            Enviadas ({shippedCount})
+          </button>
+          <button
             onClick={() => setStatusFilter("cancelled")}
             className={`px-4 py-2 rounded font-semibold transition-all ${
               statusFilter === "cancelled"
@@ -421,43 +460,45 @@ const VistaOrdenesAdmin = () => {
                 >
                   <td className="px-6 py-4">
                     <div className="text-verde font-bold">
-                      {order.orderNumber}
+                      #{order.id ? String(order.id).padStart(8, '0') : 'N/A'}
                     </div>
-                    <div className="text-gray-400 text-sm">ID: #{order.id}</div>
+                    <div className="text-gray-400 text-sm">ID: {order.id || 'N/A'}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-white font-semibold">
-                      {order.customerName}
+                      {order.user 
+                        ? `${order.user.firstName} ${order.user.lastName}`.trim()
+                        : order.guestName || 'Usuario invitado'}
                     </div>
                     <div className="text-gray-400 text-sm">
-                      {order.customerEmail}
+                      {order.user?.email || order.guestEmail || 'N/A'}
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-white">
-                      {new Date(order.date).toLocaleDateString("es-AR")}
+                      {order.createdAt ? new Date(order.createdAt).toLocaleDateString("es-AR") : 'N/A'}
                     </div>
                     <div className="text-gray-400 text-sm">
-                      {new Date(order.date).toLocaleTimeString("es-AR", {
+                      {order.createdAt ? new Date(order.createdAt).toLocaleTimeString("es-AR", {
                         hour: "2-digit",
                         minute: "2-digit",
-                      })}
+                      }) : ''}
                     </div>
                   </td>
                   <td className="px-6 py-4 text-white font-semibold">
-                    {order.totalProducts}{" "}
-                    {order.totalProducts === 1 ? "producto" : "productos"}
+                    {order.items?.length || 0}{" "}
+                    {(order.items?.length || 0) === 1 ? "producto" : "productos"}
                   </td>
                   <td className="px-6 py-4 text-verde font-bold text-lg">
-                    ${order.total.toLocaleString()}
+                    ${order.total ? order.total.toLocaleString() : '0'}
                   </td>
                   <td className="px-6 py-4">
                     <span
                       className={`px-3 py-1 rounded-full text-sm font-semibold border-2 ${getStatusColor(
-                        order.status
+                        order.status || 'pending'
                       )}`}
                     >
-                      {getStatusText(order.status)}
+                      {getStatusText(order.status || 'pending')}
                     </span>
                   </td>
                   <td className="px-6 py-4">
@@ -466,8 +507,8 @@ const VistaOrdenesAdmin = () => {
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => navigate(`/admin/ordenes/${order.id}`)}
-                        className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-verde hover:text-verde transition-colors"
+                        onClick={() => order.id && navigate(`/admin/ordenes/${order.id}`)}
+                        className="p-2 bg-verde text-gris rounded hover:bg-opacity-90 transition-all"
                         title="Ver detalles"
                       >
                         <svg
@@ -492,12 +533,12 @@ const VistaOrdenesAdmin = () => {
                       </motion.button>
 
                       {/* Confirmar (solo si está pendiente) */}
-                      {order.status === "pending" && (
+                      {(order.status === "PENDING" || order.status === "PAYMENT_PENDING") && (
                         <motion.button
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
-                          onClick={() => handleStatusChange(order.id, "confirmed")}
-                          className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-verde hover:text-verde transition-colors"
+                          onClick={() => order.id && handleStatusChange(order.id.toString(), "PAID")}
+                          className="p-2 bg-verde text-gris rounded hover:bg-opacity-90 transition-all"
                           title="Confirmar orden"
                         >
                           <svg
@@ -516,17 +557,17 @@ const VistaOrdenesAdmin = () => {
                         </motion.button>
                       )}
 
-                      {/* Cancelar (solo si está pendiente o confirmada) */}
-                      {(order.status === "pending" || order.status === "confirmed") && (
+                      {/* Cancelar (solo si NO está cancelada ni completada) */}
+                      {(order.status === "PENDING" || order.status === "PAYMENT_PENDING" || order.status === "PAID" || order.status === "PREPARING") && (
                         <motion.button
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
                           onClick={() => {
                             if (window.confirm("¿Estás seguro de cancelar esta orden?")) {
-                              handleStatusChange(order.id, "cancelled");
+                              order.id && handleStatusChange(order.id.toString(), "CANCELLED");
                             }
                           }}
-                          className="p-2 bg-azul border border-gray-600 text-gray-300 rounded hover:border-red-500 hover:text-red-500 transition-colors"
+                          className="p-2 bg-azul border-2 border-azul text-gris rounded hover:border-red-500 transition-all"
                           title="Cancelar orden"
                         >
                           <svg

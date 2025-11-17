@@ -1,20 +1,26 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const VistaIndexRegister = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
+  
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
   const [errors, setErrors] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
+    general: "",
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -29,22 +35,31 @@ const VistaIndexRegister = () => {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
+        general: "",
       }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       password: "",
       confirmPassword: "",
+      general: "",
     };
     let isValid = true;
 
     // Validar nombre
-    if (!formData.name.trim()) {
-      newErrors.name = "El nombre es requerido";
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "El nombre es requerido";
+      isValid = false;
+    }
+
+    // Validar apellido
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "El apellido es requerido";
       isValid = false;
     }
 
@@ -90,16 +105,27 @@ const VistaIndexRegister = () => {
     setIsLoading(true);
 
     try {
-      // TODO: Reemplazar con endpoint real del backend
-      console.log("Registrando usuario:", formData);
+      await register({
+        email: formData.email,
+        password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+      });
 
-      // Simulación de registro
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Redirigir a login o home después del registro exitoso
-      navigate("/login");
-    } catch (error) {
+      // Redirigir a home después del registro exitoso
+      navigate("/");
+    } catch (error: any) {
       console.error("Error al registrar:", error);
+      
+      // Mostrar mensaje de error
+      const errorMessage = error?.response?.data?.message || 
+                          error?.message || 
+                          "Error al crear la cuenta. Intenta nuevamente.";
+      
+      setErrors((prev) => ({
+        ...prev,
+        general: errorMessage,
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -134,22 +160,48 @@ const VistaIndexRegister = () => {
               onSubmit={handleSubmit}
               className="border-2 border-verde rounded-lg p-8 space-y-6"
             >
+              {/* Error general */}
+              {errors.general && (
+                <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded">
+                  {errors.general}
+                </div>
+              )}
+
               {/* Nombre */}
               <div>
-                <label htmlFor="name" className="block text-gray-300 mb-2">
-                  Nombre completo
+                <label htmlFor="firstName" className="block text-gray-300 mb-2">
+                  Nombre
                 </label>
                 <input
                   type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
+                  id="firstName"
+                  name="firstName"
+                  value={formData.firstName}
                   onChange={handleChange}
                   className="w-full px-4 py-3 bg-gris border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-verde transition-colors"
                   placeholder="Tu nombre"
                 />
-                {errors.name && (
-                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                {errors.firstName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>
+                )}
+              </div>
+
+              {/* Apellido */}
+              <div>
+                <label htmlFor="lastName" className="block text-gray-300 mb-2">
+                  Apellido
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-gris border border-gray-600 rounded text-white placeholder-gray-500 focus:outline-none focus:border-verde transition-colors"
+                  placeholder="Tu apellido"
+                />
+                {errors.lastName && (
+                  <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>
                 )}
               </div>
 

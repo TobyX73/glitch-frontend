@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@mercadopago/sdk-react": "^1.0.6",
+    "framer-motion": "^12.23.24"
+  }
+}

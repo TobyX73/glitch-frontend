@@ -1,10 +1,12 @@
 import CheckboxCyberpunk from "./CheckboxCyberpunk";
+import type { Category } from "../../types/product.types";
 
 interface FiltersProps {
   selectedColors: string[];
   selectedCortes: string[];
   selectedCategorias: string[];
   onToggleFilter: (filterType: "color" | "corte" | "categoria", value: string) => void;
+  categories: Category[];
 }
 
 const Filters = ({
@@ -12,6 +14,7 @@ const Filters = ({
   selectedCortes,
   selectedCategorias,
   onToggleFilter,
+  categories,
 }: FiltersProps) => {
   return (
     <aside className="space-y-6">
@@ -49,14 +52,18 @@ const Filters = ({
       <div className="p-4 border-2 border-verde">
         <h3 className="text-verde font-semibold mb-3 text-lg">Categorías</h3>
         <div className="space-y-3">
-          {["Remera", "Pantalón"].map((categoria) => (
-            <CheckboxCyberpunk
-              key={categoria}
-              label={categoria}
-              checked={selectedCategorias.includes(categoria)}
-              onChange={() => onToggleFilter("categoria", categoria)}
-            />
-          ))}
+          {categories.length > 0 ? (
+            categories.map((categoria) => (
+              <CheckboxCyberpunk
+                key={categoria.id}
+                label={categoria.name}
+                checked={selectedCategorias.includes(categoria.name)}
+                onChange={() => onToggleFilter("categoria", categoria.name)}
+              />
+            ))
+          ) : (
+            <p className="text-gray-400 text-sm">No hay categorías disponibles</p>
+          )}
         </div>
       </div>
     </aside>

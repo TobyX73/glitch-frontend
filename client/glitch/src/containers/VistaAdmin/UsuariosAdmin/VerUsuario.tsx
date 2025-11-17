@@ -1,32 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-
-interface User {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  createdAt: string;
-}
-
-interface Order {
-  id: number;
-  orderNumber: string;
-  date: string;
-  status: "pending" | "processing" | "completed" | "cancelled";
-  total: number;
-  items: OrderItem[];
-}
-
-interface OrderItem {
-  id: number;
-  productName: string;
-  quantity: number;
-  price: number;
-  size: string;
-}
+import { usersAPI, ordersAPI } from "../../../services/api";
+import type { User, Order } from "../../../types/product.types";
 
 const VerUsuario = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,128 +11,41 @@ const VerUsuario = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  // TODO: Cargar datos del usuario y sus órdenes desde el backend
   useEffect(() => {
     const loadUserData = async () => {
-      try {
-        // Simular carga de datos
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        // Mock data - reemplazar con fetch real
-        const mockUser: User = {
-          id: parseInt(id || "0"),
-          name: "Juan Pérez",
-          email: "juan.perez@email.com",
-          phone: "+54 11 1234-5678",
-          address: "Av. Corrientes 1234, CABA, Buenos Aires",
-          createdAt: "2024-01-15",
-        };
-
-        const mockOrders: Order[] = [
-          {
-            id: 1,
-            orderNumber: "ORD-2024-001",
-            date: "2024-03-15",
-            status: "completed",
-            total: 28000,
-            items: [
-              {
-                id: 1,
-                productName: "Remera Cyberpunk 2077",
-                quantity: 1,
-                price: 15000,
-                size: "L",
-              },
-              {
-                id: 2,
-                productName: "Hoodie GTA V",
-                quantity: 1,
-                price: 13000,
-                size: "XL",
-              },
-            ],
-          },
-          {
-            id: 2,
-            orderNumber: "ORD-2024-012",
-            date: "2024-04-20",
-            status: "completed",
-            total: 15000,
-            items: [
-              {
-                id: 3,
-                productName: "Remera The Witcher",
-                quantity: 1,
-                price: 15000,
-                size: "M",
-              },
-            ],
-          },
-          {
-            id: 3,
-            orderNumber: "ORD-2024-045",
-            date: "2024-05-10",
-            status: "processing",
-            total: 32000,
-            items: [
-              {
-                id: 4,
-                productName: "Buzo Fortnite",
-                quantity: 2,
-                price: 16000,
-                size: "L",
-              },
-            ],
-          },
-          {
-            id: 4,
-            orderNumber: "ORD-2024-067",
-            date: "2024-06-05",
-            status: "pending",
-            total: 45000,
-            items: [
-              {
-                id: 5,
-                productName: "Remera God of War",
-                quantity: 1,
-                price: 15000,
-                size: "XL",
-              },
-              {
-                id: 6,
-                productName: "Hoodie Minecraft",
-                quantity: 1,
-                price: 30000,
-                size: "L",
-              },
-            ],
-          },
-          {
-            id: 5,
-            orderNumber: "ORD-2024-089",
-            date: "2024-07-12",
-            status: "cancelled",
-            total: 20000,
-            items: [
-              {
-                id: 7,
-                productName: "Remera League of Legends",
-                quantity: 1,
-                price: 20000,
-                size: "M",
-              },
-            ],
-          },
-        ];
-
-        setUser(mockUser);
-        setOrders(mockOrders);
+      if (!id) {
+        setError("ID de usuario no válido");
         setIsLoading(false);
-      } catch (error) {
-        console.error("Error al cargar usuario:", error);
-        setError("Error al cargar el usuario");
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        
+        // Cargar datos del usuario
+        const userResponse = await usersAPI.getById(id);
+        console.log("👤 Usuario recibido:", userResponse);
+        const userData: User = (userResponse as any).data || userResponse;
+        setUser(userData);
+
+        // Cargar todas las órdenes y filtrar por userId
+        const ordersResponse = await ordersAPI.getAll();
+        console.log("📦 Órdenes recibidas:", ordersResponse);
+        const allOrders: Order[] = Array.isArray(ordersResponse) 
+          ? ordersResponse 
+          : (ordersResponse as any).data || [];
+        
+        // Filtrar órdenes del usuario
+        const userOrders = allOrders.filter(order => order.userId === parseInt(id));
+        console.log("📦 Órdenes del usuario:", userOrders);
+        setOrders(userOrders);
+        
+        setError("");
+      } catch (error: any) {
+        console.error("❌ Error al cargar usuario:", error);
+        setError(error.response?.data?.message || "Error al cargar el usuario");
+      } finally {
         setIsLoading(false);
       }
     };
@@ -166,14 +55,20 @@ const VerUsuario = () => {
 
   const getStatusColor = (status: Order["status"]) => {
     switch (status) {
-      case "completed":
-        return "bg-verde bg-opacity-20 text-verde";
-      case "processing":
-        return "bg-blue-500 bg-opacity-20 text-blue-400";
-      case "pending":
+      case "PENDING":
+      case "PAYMENT_PENDING":
         return "bg-yellow-500 bg-opacity-20 text-yellow-400";
-      case "cancelled":
+      case "PAID":
+      case "PREPARING":
+        return "bg-blue-500 bg-opacity-20 text-blue-400";
+      case "SHIPPED":
+        return "bg-purple-500 bg-opacity-20 text-purple-400";
+      case "DELIVERED":
+        return "bg-verde bg-opacity-20 text-verde";
+      case "CANCELLED":
         return "bg-red-500 bg-opacity-20 text-red-400";
+      case "REFUNDED":
+        return "bg-orange-500 bg-opacity-20 text-orange-400";
       default:
         return "bg-gray-500 bg-opacity-20 text-gray-400";
     }
@@ -181,14 +76,22 @@ const VerUsuario = () => {
 
   const getStatusText = (status: Order["status"]) => {
     switch (status) {
-      case "completed":
-        return "Completada";
-      case "processing":
-        return "En Proceso";
-      case "pending":
+      case "PENDING":
         return "Pendiente";
-      case "cancelled":
+      case "PAYMENT_PENDING":
+        return "Pago Pendiente";
+      case "PAID":
+        return "Pagada";
+      case "PREPARING":
+        return "En Preparación";
+      case "SHIPPED":
+        return "Enviada";
+      case "DELIVERED":
+        return "Entregada";
+      case "CANCELLED":
         return "Cancelada";
+      case "REFUNDED":
+        return "Reembolsada";
       default:
         return status;
     }
@@ -276,11 +179,11 @@ const VerUsuario = () => {
             <div className="flex flex-col items-center mb-6">
               <div className="w-24 h-24 bg-verde bg-opacity-20 rounded-full flex items-center justify-center mb-4">
                 <span className="text-verde font-bold text-4xl">
-                  {user.name.charAt(0)}
+                  {(user.firstName?.charAt(0) || '') + (user.lastName?.charAt(0) || '')}
                 </span>
               </div>
               <h2 className="text-2xl font-bold text-white text-center">
-                {user.name}
+                {user.firstName} {user.lastName}
               </h2>
             </div>
 
@@ -294,16 +197,11 @@ const VerUsuario = () => {
 
               <div>
                 <label className="text-gray-400 text-sm block mb-1">
-                  Teléfono
+                  Rol
                 </label>
-                <p className="text-white font-semibold">{user.phone}</p>
-              </div>
-
-              <div>
-                <label className="text-gray-400 text-sm block mb-1">
-                  Dirección
-                </label>
-                <p className="text-white font-semibold">{user.address}</p>
+                <p className="text-white font-semibold capitalize">
+                  {user.role === 'admin' ? 'Administrador' : 'Usuario'}
+                </p>
               </div>
 
               <div>
@@ -334,7 +232,7 @@ const VerUsuario = () => {
               <div className="flex justify-between items-center">
                 <span className="text-gray-400">Completadas</span>
                 <span className="text-verde font-bold text-xl">
-                  {orders.filter((o) => o.status === "completed").length}
+                  {orders.filter((o) => o.status === "DELIVERED").length}
                 </span>
               </div>
             </div>
@@ -385,10 +283,10 @@ const VerUsuario = () => {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <h3 className="text-white font-bold text-lg mb-1">
-                          {order.orderNumber}
+                          Orden #{order.id}
                         </h3>
                         <p className="text-gray-400 text-sm">
-                          {new Date(order.date).toLocaleDateString("es-AR", {
+                          {new Date(order.createdAt).toLocaleDateString("es-AR", {
                             year: "numeric",
                             month: "long",
                             day: "numeric",
@@ -423,9 +321,6 @@ const VerUsuario = () => {
                             <span className="text-white font-semibold">
                               {item.productName}
                             </span>
-                            <span className="px-2 py-1 bg-gris border border-verde text-verde text-xs rounded">
-                              {item.size}
-                            </span>
                           </div>
                           <span className="text-white font-semibold">
                             ${item.price.toLocaleString()}
@@ -436,7 +331,7 @@ const VerUsuario = () => {
 
                     {/* View Details Button */}
                     <button
-                      onClick={() => setSelectedOrder(order)}
+                      onClick={() => navigate(`/admin/ordenes/${order.id}`)}
                       className="mt-4 w-full px-4 py-2 bg-gris border border-gray-600 text-gray-300 rounded font-semibold hover:border-verde hover:text-verde transition-all"
                     >
                       Ver Detalles
@@ -448,122 +343,6 @@ const VerUsuario = () => {
           </div>
         </motion.div>
       </div>
-
-      {/* Order Detail Modal */}
-      {selectedOrder && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50"
-          onClick={() => setSelectedOrder(null)}
-        >
-          <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="bg-gris border-2 border-verde rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h2 className="text-3xl font-bold text-white mb-2">
-                  Detalle de Orden
-                </h2>
-                <p className="text-verde font-bold text-xl">
-                  {selectedOrder.orderNumber}
-                </p>
-              </div>
-              <button
-                onClick={() => setSelectedOrder(null)}
-                className="p-2 hover:bg-azul rounded transition-colors"
-              >
-                <svg
-                  className="w-6 h-6 text-gray-400 hover:text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-gray-400 text-sm block mb-1">
-                    Fecha
-                  </label>
-                  <p className="text-white font-semibold">
-                    {new Date(selectedOrder.date).toLocaleDateString("es-AR")}
-                  </p>
-                </div>
-                <div>
-                  <label className="text-gray-400 text-sm block mb-1">
-                    Estado
-                  </label>
-                  <span
-                    className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(
-                      selectedOrder.status
-                    )}`}
-                  >
-                    {getStatusText(selectedOrder.status)}
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-verde font-bold text-lg mb-3">
-                  Productos
-                </h3>
-                <div className="space-y-3">
-                  {selectedOrder.items.map((item) => (
-                    <div
-                      key={item.id}
-                      className="bg-azul border border-gray-600 rounded p-4"
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="text-white font-semibold mb-1">
-                            {item.productName}
-                          </p>
-                          <div className="flex items-center gap-3 text-sm">
-                            <span className="text-gray-400">
-                              Cantidad: {item.quantity}
-                            </span>
-                            <span className="px-2 py-1 bg-gris border border-verde text-verde text-xs rounded">
-                              Talla: {item.size}
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-verde font-bold text-lg">
-                          ${item.price.toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="border-t-2 border-verde pt-4">
-                <div className="flex justify-between items-center">
-                  <span className="text-white text-xl font-bold">
-                    Total
-                  </span>
-                  <span className="text-verde text-3xl font-bold">
-                    ${selectedOrder.total.toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
     </div>
   );
 };

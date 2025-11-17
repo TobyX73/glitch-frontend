@@ -1,19 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-
-interface Product {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  stock: number;
-  images: string[];
-  sizes: string[];
-  category: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import { productsAPI } from "../../../services/api";
+import type { Product } from "../../../types/product.types";
 
 const VerProducto = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,37 +12,27 @@ const VerProducto = () => {
   const [error, setError] = useState("");
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  // TODO: Cargar datos del producto desde el backend
   useEffect(() => {
     const loadProduct = async () => {
-      try {
-        // Simular carga de datos
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        // Mock data - reemplazar con fetch real
-        const mockProduct: Product = {
-          id: parseInt(id || "0"),
-          name: "Remera Cyberpunk 2077",
-          description:
-            "Remera de algodón 100% con diseño exclusivo inspirado en Cyberpunk 2077. Estampado de alta calidad que no se destiñe. Ideal para gamers y fanáticos del género cyberpunk.",
-          price: 15000,
-          stock: 25,
-          images: [
-            "/productos/remera1.jpg",
-            "/productos/remera2.jpg",
-            "/productos/remera3.jpg",
-          ],
-          sizes: ["S", "M", "L", "XL"],
-          category: "Remeras",
-          createdAt: "2024-01-15",
-          updatedAt: "2024-01-20",
-        };
-
-        setProduct(mockProduct);
+      if (!id) {
+        setError("ID de producto no válido");
         setIsLoading(false);
-      } catch (error) {
-        console.error("Error al cargar producto:", error);
-        setError("Error al cargar el producto");
+        return;
+      }
+
+      try {
+        setIsLoading(true);
+        const response = await productsAPI.getById(id);
+        console.log("📦 Producto recibido:", response);
+        
+        // El backend puede devolver { data: product } o directamente product
+        const productData = (response as any).data || response;
+        setProduct(productData);
+        setError("");
+      } catch (error: any) {
+        console.error("❌ Error al cargar producto:", error);
+        setError(error.response?.data?.message || "Error al cargar el producto");
+      } finally {
         setIsLoading(false);
       }
     };
@@ -62,6 +41,8 @@ const VerProducto = () => {
   }, [id]);
 
   const handleDelete = async () => {
+    if (!product) return;
+
     if (
       !window.confirm(
         "¿Estás seguro de eliminar este producto? Esta acción no se puede deshacer."
@@ -71,16 +52,12 @@ const VerProducto = () => {
     }
 
     try {
-      // TODO: Implementar DELETE al backend
-      console.log("Eliminar producto:", id);
-
-      // Simular delay de API
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
+      await productsAPI.delete(product.id.toString());
+      console.log("✅ Producto eliminado:", product.id);
       navigate("/admin/productos");
-    } catch (error) {
-      console.error("Error al eliminar producto:", error);
-      alert("Error al eliminar el producto. Intentá nuevamente.");
+    } catch (error: any) {
+      console.error("❌ Error al eliminar producto:", error);
+      alert(error.response?.data?.message || "Error al eliminar el producto. Intentá nuevamente.");
     }
   };
 
@@ -228,13 +205,19 @@ const VerProducto = () => {
           {/* Main Image */}
           <div className="relative mb-4">
             <img
-              src={product.images[currentImageIndex] || "/placeholder.jpg"}
+              src={
+                product.images && product.images[currentImageIndex]
+                  ? typeof product.images[currentImageIndex] === 'string'
+                    ? product.images[currentImageIndex]
+                    : (product.images[currentImageIndex] as any).url
+                  : product.mainImage || "/placeholder.jpg"
+              }
               alt={`${product.name} - ${currentImageIndex + 1}`}
               className="w-full h-96 object-cover rounded border-2 border-gray-600"
             />
 
             {/* Navigation Arrows */}
-            {product.images.length > 1 && (
+            {product.images && product.images.length > 1 && (
               <>
                 <button
                   onClick={prevImage}
@@ -277,30 +260,33 @@ const VerProducto = () => {
 
             {/* Image Counter */}
             <div className="absolute bottom-4 right-4 px-3 py-1 bg-gris bg-opacity-80 border border-verde text-verde rounded font-bold">
-              {currentImageIndex + 1} / {product.images.length}
+              {currentImageIndex + 1} / {product.images?.length || 0}
             </div>
           </div>
 
           {/* Thumbnails */}
-          {product.images.length > 1 && (
+          {product.images && product.images.length > 1 && (
             <div className="grid grid-cols-4 gap-2">
-              {product.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentImageIndex(index)}
-                  className={`border-2 rounded overflow-hidden transition-all ${
-                    currentImageIndex === index
-                      ? "border-verde"
-                      : "border-gray-600 hover:border-verde"
-                  }`}
-                >
-                  <img
-                    src={image}
-                    alt={`Thumbnail ${index + 1}`}
-                    className="w-full h-20 object-cover"
-                  />
-                </button>
-              ))}
+              {product.images.map((image, index) => {
+                const imageUrl = typeof image === 'string' ? image : (image as any).url;
+                return (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentImageIndex(index)}
+                    className={`border-2 rounded overflow-hidden transition-all ${
+                      currentImageIndex === index
+                        ? "border-verde"
+                        : "border-gray-600 hover:border-verde"
+                    }`}
+                  >
+                    <img
+                      src={imageUrl}
+                      alt={`Thumbnail ${index + 1}`}
+                      className="w-full h-20 object-cover"
+                    />
+                  </button>
+                );
+              })}
             </div>
           )}
         </motion.div>
@@ -338,41 +324,44 @@ const VerProducto = () => {
                   <label className="text-gray-400 text-sm block mb-1">
                     Categoría
                   </label>
-                  <p className="text-white font-semibold">{product.category}</p>
+                  <p className="text-white font-semibold">
+                    {typeof product.category === 'string' 
+                      ? product.category 
+                      : product.category?.name || 'Sin categoría'}
+                  </p>
                 </div>
-
                 <div>
                   <label className="text-gray-400 text-sm block mb-1">
-                    Precio
+                    Precio Base
                   </label>
                   <p className="text-verde text-2xl font-bold">
-                    ${product.price.toLocaleString()}
+                    ${(product.basePrice || product.price || 0).toLocaleString()}
                   </p>
                 </div>
               </div>
 
               <div>
                 <label className="text-gray-400 text-sm block mb-1">
-                  Stock
+                  Stock Total
                 </label>
                 <div className="flex items-center gap-3">
                   <span
-                    className={`px-4 py-2 rounded font-semibold ${
-                      product.stock > 10
-                        ? "bg-verde bg-opacity-20 text-verde"
-                        : product.stock > 0
-                        ? "bg-yellow-500 bg-opacity-20 text-yellow-500"
-                        : "bg-red-500 bg-opacity-20 text-red-500"
+                    className={`px-4 py-2 rounded font-semibold text-black ${
+                      (product.totalStock || product.stock || 0) > 10
+                        ? "bg-verde"
+                        : (product.totalStock || product.stock || 0) > 0
+                        ? "bg-yellow-500"
+                        : "bg-red-500"
                     }`}
                   >
-                    {product.stock} unidades
+                    {product.totalStock || product.stock || 0} unidades
                   </span>
-                  {product.stock <= 10 && product.stock > 0 && (
+                  {(product.totalStock || product.stock || 0) <= 10 && (product.totalStock || product.stock || 0) > 0 && (
                     <span className="text-yellow-500 text-sm">
                       ⚠️ Stock bajo
                     </span>
                   )}
-                  {product.stock === 0 && (
+                  {(product.totalStock || product.stock || 0) === 0 && (
                     <span className="text-red-500 text-sm">
                       🚫 Sin stock
                     </span>
@@ -382,17 +371,33 @@ const VerProducto = () => {
 
               <div>
                 <label className="text-gray-400 text-sm block mb-2">
-                  Tallas Disponibles
+                  Tallas y Stock
                 </label>
-                <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size) => (
-                    <span
-                      key={size}
-                      className="px-4 py-2 bg-azul border-2 border-verde text-verde rounded font-semibold"
-                    >
-                      {size}
-                    </span>
-                  ))}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {product.variants && product.variants.length > 0 ? (
+                    product.variants.map((variant) => (
+                      <div
+                        key={variant.size}
+                        className="px-4 py-3 bg-azul border-2 border-verde rounded"
+                      >
+                        <div className="text-verde font-bold text-lg">{variant.size}</div>
+                        <div className="text-gray-400 text-sm">
+                          Stock: <span className="text-white font-semibold">{variant.stock}</span>
+                        </div>
+                      </div>
+                    ))
+                  ) : product.sizes && product.sizes.length > 0 ? (
+                    product.sizes.map((size) => (
+                      <span
+                        key={size}
+                        className="px-4 py-2 bg-azul border-2 border-verde text-verde rounded font-semibold"
+                      >
+                        {size}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-gray-400">Sin talles disponibles</span>
+                  )}
                 </div>
               </div>
             </div>

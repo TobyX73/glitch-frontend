@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const VistaIndexLogin = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
+  
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -11,6 +14,7 @@ const VistaIndexLogin = () => {
   const [errors, setErrors] = useState({
     email: "",
     password: "",
+    general: "",
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -25,6 +29,7 @@ const VistaIndexLogin = () => {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
+        general: "",
       }));
     }
   };
@@ -33,6 +38,7 @@ const VistaIndexLogin = () => {
     const newErrors = {
       email: "",
       password: "",
+      general: "",
     };
     let isValid = true;
 
@@ -66,16 +72,35 @@ const VistaIndexLogin = () => {
     setIsLoading(true);
 
     try {
-      // TODO: Reemplazar con endpoint real del backend
-      console.log("Iniciando sesión:", formData);
-
-      // Simulación de login
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await login({
+        email: formData.email,
+        password: formData.password,
+      });
 
       // Redirigir a home después del login exitoso
       navigate("/");
-    } catch (error) {
-      console.error("Error al iniciar sesión:", error);
+    } catch (error: any) {
+      console.error("Error completo:", error);
+      console.error("Error response:", error?.response);
+      console.error("Error request:", error?.request);
+      
+      // Mensaje de error específico
+      let errorMessage = "Error al iniciar sesión.";
+      
+      if (error?.code === 'ERR_NETWORK') {
+        errorMessage = "❌ Error de conexión. Verifica que el backend esté configurado con CORS para permitir localhost:5173";
+      } else if (error?.response?.status === 401 || error?.response?.status === 400) {
+        errorMessage = error?.response?.data?.message || "Email o contraseña incorrectos.";
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
+      setErrors((prev) => ({
+        ...prev,
+        general: errorMessage,
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -137,6 +162,13 @@ const VistaIndexLogin = () => {
               onSubmit={handleSubmit}
               className="border-2 border-verde rounded-lg p-8 space-y-6"
             >
+              {/* Error general */}
+              {errors.general && (
+                <div className="bg-red-500/10 border border-red-500 text-red-500 px-4 py-3 rounded">
+                  {errors.general}
+                </div>
+              )}
+
               {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-gray-300 mb-2">
