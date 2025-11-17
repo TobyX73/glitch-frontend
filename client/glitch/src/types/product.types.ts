@@ -73,6 +73,7 @@ export interface OrderItem {
   price: number;
   productName: string;
   productImage?: string | null;
+  size?: string | null;
 }
 
 export interface Order {
@@ -92,6 +93,12 @@ export interface Order {
     country: string;
   };
   items: OrderItem[];
+  user?: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
   payment?: {
     id: number;
     amount: number;

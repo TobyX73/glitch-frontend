@@ -350,6 +350,11 @@ const VerOrden = () => {
                       {item.productName}
                     </h3>
                     <div className="flex items-center gap-3 text-sm mb-2">
+                      {item.size && (
+                        <span className="px-2 py-1 bg-verde text-gris rounded font-semibold">
+                          Talle: {item.size}
+                        </span>
+                      )}
                       <span className="text-gray-400">
                         Cantidad: {item.quantity}
                       </span>
@@ -431,7 +436,9 @@ const VerOrden = () => {
                   Nombre
                 </label>
                 <p className="text-white font-semibold">
-                  {order.guestName || 'Usuario registrado'}
+                  {order.user 
+                    ? `${order.user.firstName} ${order.user.lastName}`.trim()
+                    : order.guestName || 'Usuario registrado'}
                 </p>
               </div>
 
@@ -440,7 +447,7 @@ const VerOrden = () => {
                   Email
                 </label>
                 <p className="text-white font-semibold">
-                  {order.guestEmail || 'No disponible'}
+                  {order.user?.email || order.guestEmail || 'No disponible'}
                 </p>
               </div>
 

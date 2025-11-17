@@ -95,7 +95,7 @@ const VistaUsuariosAdmin = () => {
             </div>
             <div className="p-4 bg-verde bg-opacity-20 rounded-lg">
               <svg
-                className="w-8 h-8 text-verde"
+                className="w-8 h-8 text-black"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
