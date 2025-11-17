@@ -21,10 +21,8 @@ const VistaUsuariosAdmin = () => {
         // Manejar tanto arrays directos como objetos con .data
         const users = Array.isArray(response) ? response : (response as any).data || [];
         setUsers(users);
-        setError(null);
       } catch (err: any) {
         console.error('Error al cargar usuarios:', err);
-        setError('Error al cargar los usuarios');
       } finally {
         setIsLoading(false);
       }

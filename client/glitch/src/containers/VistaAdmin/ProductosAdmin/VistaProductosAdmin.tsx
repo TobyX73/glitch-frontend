@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { productsAPI, categoriesAPI, type Category } from "../../../services/api";
+import { productsAPI, categoriesAPI } from "../../../services/api";
 import type { Product } from "../../../types/product.types";
 
 const VistaProductosAdmin = () => {

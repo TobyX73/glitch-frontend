@@ -51,7 +51,6 @@ const ImageGallery = ({ images, productName }: ImageGalleryProps) => {
         onSwiper={setMainSwiper}
         spaceBetween={10}
         navigation={true}
-        thumbs={{ swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null }}
         modules={[FreeMode, Navigation, Thumbs]}
         className="w-full aspect-square rounded-lg overflow-hidden"
       >

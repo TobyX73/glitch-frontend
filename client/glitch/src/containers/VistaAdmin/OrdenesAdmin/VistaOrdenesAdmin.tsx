@@ -30,10 +30,8 @@ const VistaOrdenesAdmin = () => {
           console.log('👤 guestEmail:', orders[0].guestEmail);
         }
         setOrders(orders);
-        setError(null);
       } catch (err: any) {
         console.error('Error al cargar órdenes:', err);
-        setError('Error al cargar las órdenes');
       } finally {
         setIsLoading(false);
       }
