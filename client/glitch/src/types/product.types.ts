@@ -18,11 +18,11 @@ export interface Product {
   id: number;
   name: string;
   description: string;
-  basePrice: number;              // ✅ Cambio de price a basePrice
-  totalStock: number;             // ✅ Stock total calculado
-  images: ProductImage[];         // ✅ Array de objetos con metadata
-  mainImage?: string;             // ✅ URL de imagen principal
-  variants: ProductVariant[];     // ✅ Variantes con size + stock
+  basePrice: number;              
+  totalStock: number;             
+  images: ProductImage[];         
+  mainImage?: string;             
+  variants: ProductVariant[];     
   category: {
     id: number;
     name: string;
@@ -32,10 +32,9 @@ export interface Product {
   createdAt: string;
   updatedAt: string;
   
-  // Retrocompatibilidad temporal
-  price?: number;                 // Alias de basePrice
-  stock?: number;                 // Alias de totalStock
-  sizes?: string[];               // Alias derivado de variants
+  price?: number;              
+  stock?: number;              
+  sizes?: string[];             
 }
 
 export interface ProductFormData {

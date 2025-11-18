@@ -6,7 +6,6 @@ import type {
   User 
 } from '../types/auth.types';
 
-// Base URL del backend en producción
 const API_BASE_URL = 'https://glitch-backend-uu8n.onrender.com/api';
 
 // Crear instancia de axios con configuración base
@@ -36,7 +35,7 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError) => {
-    // Error de red (backend apagado, sin internet, CORS, etc.)
+    // Error de red (backend apagado, sin internet, CORS, etc)
     if (error.code === 'ERR_NETWORK' || !error.response) {
       console.error('Error de red. El backend puede estar hibernado o hay un problema de conexión.');
       return Promise.reject({
@@ -60,7 +59,6 @@ api.interceptors.response.use(
   }
 );
 
-// ==================== AUTENTICACIÓN (USERS) ====================
 
 export const authAPI = {
   // Registro de usuario
@@ -98,7 +96,6 @@ export const authAPI = {
   },
 };
 
-// ==================== USUARIOS (ADMIN) ====================
 
 export const usersAPI = {
   // Obtener todos los usuarios (solo admin)
@@ -125,7 +122,6 @@ export const usersAPI = {
   },
 };
 
-// ==================== UPLOADS ====================
 
 export const uploadsAPI = {
   // Subir imagen a Cloudinary
@@ -142,7 +138,6 @@ export const uploadsAPI = {
   },
 };
 
-// ==================== PRODUCTOS ====================
 
 // Importar tipos desde product.types.ts en lugar de duplicar
 import type { Product } from '../types/product.types';
@@ -194,7 +189,6 @@ export const productsAPI = {
   },
 };
 
-// ==================== CATEGORÍAS ====================
 
 export interface Category {
   id: number;
@@ -235,7 +229,6 @@ export const categoriesAPI = {
   },
 };
 
-// ==================== ÓRDENES ====================
 
 export interface OrderItem {
   productId: number;
@@ -257,9 +250,22 @@ export interface Order {
   updatedAt?: string;
 }
 
+export interface shippingAddress {
+  address: string;
+  apartment?: string;
+  city: string;
+  zipCode: string;
+  type: 'domicilio' | 'sucursal';
+  cost: number;
+  estimatedDays: number;
+  postalCode?: string;
+  province?: string;
+};
+
+
 export interface CheckoutData {
   items: OrderItem[];
-  shippingAddress: string;
+  shippingAddress: shippingAddress;
   paymentMethod?: string;
 }
 
@@ -319,7 +325,6 @@ export const ordersAPI = {
   },
 };
 
-// ==================== DELIVERY ====================
 
 export interface DeliveryQuote {
   carrier: string;

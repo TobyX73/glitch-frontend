@@ -51,6 +51,12 @@ const PaymentMethods = ({ shippingData, cartItems, goToConfirmation }: PaymentMe
     try {
       const shipping = state.shippingInfo;
 
+      if (!shipping) {
+        setError('Información de envío no disponible.');
+        setLoading(false);
+      return;
+      }      
+
       // Preparar shippingAddress como objeto
       const shippingAddress = {
         address: shippingData.address,
