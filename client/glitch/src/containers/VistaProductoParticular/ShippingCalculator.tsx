@@ -68,7 +68,13 @@ const ShippingCalculator = ({ productId }: ShippingCalculatorProps) => {
       const provincia = mapPostalCodeToProvince(postalCode);
       
       const result = await deliveryAPI.getBranches(provincia);
-      setBranches(result);
+      // Mapear respuesta del API al tipo local `Branch` (nombre, direccion, localidad)
+      const mapped = result.map((b: any) => ({
+        nombre: b.nombre || b.name || '',
+        direccion: b.direccion || b.address || '',
+        localidad: b.localidad || b.provincia || ''
+      }));
+      setBranches(mapped);
     } catch (err) {
       console.error('Error cargando sucursales:', err);
     } finally {

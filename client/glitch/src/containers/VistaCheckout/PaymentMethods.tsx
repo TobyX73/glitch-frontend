@@ -1,9 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 //import { useNavigate } from 'react-router-dom';
 //import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
 // import { ordersAPI } from '../../services/api'; // Comentado: llamadas reales al backend no necesarias para la simulación
-import { useCart } from '../../context/CartContext';
+//import { useCart } from '../../context/CartContext';
 
 interface PaymentMethodsProps {
   shippingData: any; // Datos del formulario de envío
@@ -11,13 +11,13 @@ interface PaymentMethodsProps {
   goToConfirmation: () => void;
 }
 
-const PaymentMethods = ({ shippingData, cartItems, goToConfirmation }: PaymentMethodsProps) => {
+const PaymentMethods = ({ shippingData: _shippingData, cartItems: _cartItems, goToConfirmation }: PaymentMethodsProps) => {
  // const navigate = useNavigate(); // No usado, documentado para evitar warning TS6133
-const { state /*, clearCart*/ } = useCart(); // clearCart no usado
+// const { state, clearCart } = useCart(); // clearCart y state no usados
 // const [preferenceId, setPreferenceId] = useState<string | null>(null); // No usado
 // const [orderId, setOrderId] = useState<number | null>(null); // No usado
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState<string | null>(null);
+// const [loading, setLoading] = useState(false); // No usado en simulación
+const [error /*, setError*/] = useState<string | null>(null); // setError no usado en simulación
 
   // Inicializar Mercado Pago con tu Public Key
   // Inicializar Mercado Pago (comentado para simulación local)
@@ -30,14 +30,15 @@ const [error, setError] = useState<string | null>(null);
   }, []);
   */
 
-  // Validar que la info de envío esté presente y correcta
+  // Validar que la info de envío esté presente y correcta (comentado — solo para uso cuando se active pago real)
+  /*
   const isShippingValid = () => {
-    // shippingInfo del CartContext
     const shipping = state.shippingInfo;
     if (!shipping) return false;
     if (!shipping.type || !shipping.cost || !shipping.postalCode) return false;
     return true;
   };
+  */
 
   // Función para crear preferencia (comentada para evitar llamadas reales durante la simulación)
   /*
