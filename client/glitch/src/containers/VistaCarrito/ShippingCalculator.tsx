@@ -1,18 +1,53 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { deliveryAPI } from '../../services/api';
 
 interface ShippingCalculatorProps {
-  onCalculate: (postalCode: string) => void;
+  cartItems: { id: number; quantity: number }[];
 }
 
-const ShippingCalculator = ({ onCalculate }: ShippingCalculatorProps) => {
+const ShippingCalculator = ({ cartItems }: ShippingCalculatorProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [postalCode, setPostalCode] = useState('');
+  const [shippingCost, setShippingCost] = useState<{
+    cost: number;
+    estimatedDays: string;
+    carrier: string;
+  } | null>(null);
+  const [calculating, setCalculating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleCalculate = () => {
-    if (postalCode.trim()) {
-      onCalculate(postalCode);
-      console.log('Calculando envío para código postal:', postalCode);
+  const handleCalculate = async () => {
+    if (!postalCode || postalCode.length < 4) {
+      setError('Ingresá un código postal válido');
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      setError('El carrito está vacío');
+      return;
+    }
+
+    try {
+      setCalculating(true);
+      setError(null);
+      
+      const items = cartItems.map(item => ({
+        productId: item.id,
+        quantity: item.quantity
+      }));
+
+      const result = await deliveryAPI.calculateShipping({
+        zipCode: postalCode,
+        items
+      });
+
+      setShippingCost(result);
+    } catch (err: any) {
+      console.error('Error al calcular envío:', err);
+      setError(err.response?.data?.message || 'No se pudo calcular el envío');
+    } finally {
+      setCalculating(false);
     }
   };
 
@@ -53,11 +88,26 @@ const ShippingCalculator = ({ onCalculate }: ShippingCalculatorProps) => {
               <button
                 type="button"
                 onClick={handleCalculate}
-                className="px-4 py-2 bg-gris border border-white text-white text-sm hover:bg-verde hover:text-gris transition-all cursor-pointer"
+                disabled={calculating}
+                className="px-4 py-2 bg-gris border border-white text-white text-sm hover:bg-verde hover:text-gris transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Calcular
+                {calculating ? 'Calculando...' : 'Calcular'}
               </button>
             </div>
+            
+            {/* Resultado */}
+            {shippingCost && (
+              <div className="mt-3 p-3 bg-azul-oscuro border border-verde rounded">
+                <p className="text-verde font-semibold">${shippingCost.cost.toLocaleString('es-AR')}</p>
+                <p className="text-white text-xs">{shippingCost.carrier}</p>
+                <p className="text-gray-400 text-xs">{shippingCost.estimatedDays}</p>
+              </div>
+            )}
+            
+            {/* Error */}
+            {error && (
+              <p className="mt-2 text-red-500 text-xs">{error}</p>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

@@ -162,7 +162,7 @@ const VistaProductoParticular = () => {
                 />
               </div>
               
-              <ShippingCalculator />
+              <ShippingCalculator productId={product.id} />
             </div>
           </div>
         </form>

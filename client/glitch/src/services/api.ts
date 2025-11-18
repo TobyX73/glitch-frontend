@@ -334,14 +334,31 @@ export interface Branch {
 }
 
 export const deliveryAPI = {
-  // Cotizar envío
-  quoteDelivery: async (data: {
-    codigoPostalOrigen: string;
-    codigoPostalDestino: string;
-    peso: number;
-    valorDeclarado: number;
-  }): Promise<DeliveryQuote[]> => {
-    const response = await api.post<DeliveryQuote[]>('/delivery/quote', data);
+  // Calcular costo de envío usando endpoint /quote
+  calculateShipping: async (data: {
+    postalCode: string;
+    items: { productId: number; quantity: number; categoryId?: number }[];
+  }): Promise<{ cost: number; estimatedDays: string; carrier: string }> => {
+    const response = await api.post<{ 
+      success: boolean; 
+      data: { 
+        cost: number; 
+        estimatedDays: string; 
+        carrier: string;
+      } 
+    }>('/delivery/quote', data);
+    return response.data.data;
+  },
+
+  // Calcular precio de envío por dimensiones físicas
+  calculatePrice: async (data: {
+    cpDestino: string;
+    peso: string;
+    alto?: string;
+    ancho?: string;
+    largo?: string;
+  }): Promise<any> => {
+    const response = await api.post('/delivery/calculate-price', data);
     return response.data;
   },
 

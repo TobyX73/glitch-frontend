@@ -85,7 +85,7 @@ const VistaIndexCarrito = ({ isOpen, onClose }: VistaIndexCarritoProps) => {
                     <CartSummary subtotal={state.totalPrice} />
                   </div>
 
-                  <ShippingCalculator onCalculate={handleShippingCalculate} />
+                  <ShippingCalculator cartItems={state.items.map(item => ({ id: item.id, quantity: item.quantity }))} />
 
                   <DiscountCoupon onApply={handleCouponApply} />
 

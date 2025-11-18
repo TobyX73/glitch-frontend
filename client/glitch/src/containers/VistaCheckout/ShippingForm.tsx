@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { deliveryAPI } from '../../services/api';
+import { useCart } from '../../context/CartContext';
 
 interface ShippingFormData {
   email: string;
@@ -17,6 +19,7 @@ interface ShippingFormProps {
 }
 
 const ShippingForm = ({ onSubmit }: ShippingFormProps) => {
+  const { items } = useCart();
   const [formData, setFormData] = useState<ShippingFormData>({
     email: '',
     firstName: '',
@@ -28,11 +31,53 @@ const ShippingForm = ({ onSubmit }: ShippingFormProps) => {
     shippingType: 'home'
   });
 
+  const [shippingCost, setShippingCost] = useState<{
+    cost: number;
+    estimatedDays: string;
+    carrier: string;
+  } | null>(null);
+  const [calculatingShipping, setCalculatingShipping] = useState(false);
+  const [shippingError, setShippingError] = useState<string | null>(null);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleCalculateShipping = async () => {
+    if (!formData.zipCode || formData.zipCode.length < 4) {
+      setShippingError('Ingresá un código postal válido');
+      return;
+    }
+
+    if (items.length === 0) {
+      setShippingError('El carrito está vacío');
+      return;
+    }
+
+    try {
+      setCalculatingShipping(true);
+      setShippingError(null);
+      
+      const cartItems = items.map(item => ({
+        productId: item.id,
+        quantity: item.quantity
+      }));
+
+      const result = await deliveryAPI.calculateShipping({
+        zipCode: formData.zipCode,
+        items: cartItems
+      });
+
+      setShippingCost(result);
+    } catch (err: any) {
+      console.error('Error al calcular envío:', err);
+      setShippingError(err.response?.data?.message || 'No se pudo calcular el envío. Intentá de nuevo.');
+    } finally {
+      setCalculatingShipping(false);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -121,16 +166,40 @@ const ShippingForm = ({ onSubmit }: ShippingFormProps) => {
             className="w-full px-4 py-3 bg-gris border border-gray-600 text-white rounded focus:outline-none focus:border-verde placeholder-gray-500"
           />
         </div>
-        <div>
-          <input
-            type="text"
-            name="zipCode"
-            value={formData.zipCode}
-            onChange={handleChange}
-            placeholder="Código Postal"
-            required
-            className="w-full px-4 py-3 bg-gris border border-gray-600 text-white rounded focus:outline-none focus:border-verde placeholder-gray-500"
-          />
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              name="zipCode"
+              value={formData.zipCode}
+              onChange={handleChange}
+              placeholder="Código Postal"
+              required
+              className="flex-1 px-4 py-3 bg-gris border border-gray-600 text-white rounded focus:outline-none focus:border-verde placeholder-gray-500"
+            />
+            <button
+              type="button"
+              onClick={handleCalculateShipping}
+              disabled={calculatingShipping}
+              className="px-4 py-3 bg-verde text-gris font-semibold rounded hover:bg-opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+            >
+              {calculatingShipping ? 'Calculando...' : 'Calcular'}
+            </button>
+          </div>
+          
+          {/* Resultado del cálculo */}
+          {shippingCost && (
+            <div className="p-3 bg-azul-oscuro border border-verde rounded">
+              <p className="text-verde font-semibold">${shippingCost.cost.toLocaleString('es-AR')}</p>
+              <p className="text-gray-300 text-sm">{shippingCost.carrier}</p>
+              <p className="text-gray-400 text-xs">{shippingCost.estimatedDays}</p>
+            </div>
+          )}
+          
+          {/* Error */}
+          {shippingError && (
+            <p className="text-red-500 text-sm">{shippingError}</p>
+          )}
         </div>
       </div>
 
