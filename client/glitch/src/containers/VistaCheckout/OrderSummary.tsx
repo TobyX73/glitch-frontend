@@ -7,13 +7,13 @@ const OrderSummary = () => {
     return `$${price.toLocaleString('es-AR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
   };
 
-  const shippingCost = 0; // Puedes calcular esto según la lógica de envío
+  const shippingCost = state.shippingInfo?.cost;
   const discount = 0; // Puedes aplicar cupones aquí
-  const total = state.totalPrice + shippingCost - discount;
+  const total = state.totalPrice + (shippingCost || 0) - discount;
 
   return (
-    <div className="bg-azul-oscuro rounded-lg p-6 sticky top-24">
-      <h2 className="text-xl font-bold text-white mb-6">Your cart</h2>
+    <div className="bg-black border-2 border-verde rounded-lg p-6 sticky top-24">
+      <h2 className="text-xl font-bold text-white mb-6">Tu carrito</h2>
 
       {/* Lista de productos */}
       <div className="space-y-4 mb-6 max-h-96 overflow-y-auto">
@@ -32,10 +32,10 @@ const OrderSummary = () => {
             <div className="flex-1">
               <h3 className="text-white text-sm font-medium mb-1">{item.title}</h3>
               <p className="text-gray-400 text-xs mb-2">
-                Size {item.size}
+                Talle {item.size}
               </p>
               <p className="text-gray-400 text-xs">
-                Quantity: {item.quantity}
+                Cantidad: {item.quantity}
               </p>
             </div>
 
@@ -55,22 +55,31 @@ const OrderSummary = () => {
         </div>
 
         <div className="flex justify-between text-white">
-          <span className="text-sm">Shipping</span>
+          <span className="text-sm">Envío</span>
           <span className="font-semibold">
-            {shippingCost === 0 ? 'Calculated at the next step' : formatPrice(shippingCost)}
+            {typeof shippingCost === 'number' && state.shippingInfo
+              ? formatPrice(shippingCost)
+              : <span className="text-gray-500">Elegí una opción de envío</span>}
           </span>
         </div>
 
+        {state.shippingInfo && (
+          <p className="text-xs text-gray-400">
+            {state.shippingInfo.type === 'domicilio' ? '📦 A domicilio' : '🏪 A sucursal'}
+            {state.shippingInfo.estimatedDays && ` • ${state.shippingInfo.estimatedDays} días`}
+          </p>
+        )}
+
         {discount > 0 && (
           <div className="flex justify-between text-verde">
-            <span className="text-sm">Discount</span>
+            <span className="text-sm">Descuento</span>
             <span className="font-semibold">-{formatPrice(discount)}</span>
           </div>
         )}
 
         <div className="flex justify-between text-white pt-3 border-t border-gray-700">
           <span className="text-lg font-bold">Total</span>
-          <span className="text-lg font-bold">{formatPrice(total)}</span>
+          <span className="text-lg font-bold text-verde">{formatPrice(total)}</span>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
@@ -7,9 +8,10 @@ import { useCart } from '../../context/CartContext';
 interface PaymentMethodsProps {
   shippingData: any; // Datos del formulario de envío
   cartItems: any[]; // Items del carrito
+  goToConfirmation: () => void;
 }
 
-const PaymentMethods = ({ shippingData, cartItems }: PaymentMethodsProps) => {
+const PaymentMethods = ({ shippingData, cartItems, goToConfirmation }: PaymentMethodsProps) => {
   const navigate = useNavigate();
   const { state, clearCart } = useCart();
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
@@ -25,35 +27,66 @@ const PaymentMethods = ({ shippingData, cartItems }: PaymentMethodsProps) => {
     }
   }, []);
 
+  // Validar que la info de envío esté presente y correcta
+  const isShippingValid = () => {
+    // shippingInfo del CartContext
+    const shipping = state.shippingInfo;
+    if (!shipping) return false;
+    if (!shipping.type || !shipping.cost || !shipping.postalCode) return false;
+    return true;
+  };
+
   // Función para crear la preferencia de pago
   const createPreference = async () => {
     setLoading(true);
     setError(null);
-    
+
+    // Validar datos de envío
+    if (!isShippingValid()) {
+      setError('Debes calcular y seleccionar una opción de envío antes de pagar.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      // Preparar dirección de envío
-      const shippingAddress = `${shippingData.address}, ${shippingData.apartment ? shippingData.apartment + ', ' : ''}${shippingData.city}, CP: ${shippingData.zipCode}`;
-      
+      const shipping = state.shippingInfo;
+
+      // Preparar shippingAddress como objeto
+      const shippingAddress = {
+        address: shippingData.address,
+        apartment: shippingData.apartment,
+        city: shippingData.city,
+        zipCode: shippingData.zipCode,
+        type: shipping.type,
+        cost: shipping.cost,
+        estimatedDays: shipping.estimatedDays,
+        postalCode: shipping.postalCode,
+        province: shipping.province || ''
+      };
+
       // Preparar items del carrito
       const orderItems = cartItems.map(item => ({
         productId: item.id,
         quantity: item.quantity,
-        price: parseFloat(item.price.replace(/[^0-9.-]+/g, ''))
+        price: parseFloat(item.price.replace(/[^0-9.-]+/g, '')),
+        size: item.size
       }));
-      
-      // Crear orden en el backend
+
+      // guestName = firstName + lastName
+      const guestName = `${shippingData.firstName} ${shippingData.lastName}`.trim();
+
+      // Enviar todos los datos relevantes al backend
       const checkoutData = {
         items: orderItems,
-        shippingAddress: shippingAddress,
-        paymentMethod: 'mercadopago'
+        shippingAddress,
+        paymentMethod: 'mercadopago',
+        guestEmail: shippingData.email,
+        guestName
       };
-      
-      console.log('Creando orden con:', checkoutData);
-      
+
+      // Crear orden en el backend
       const response = await ordersAPI.checkoutComplete(checkoutData);
-      
-      console.log('Respuesta del backend:', response);
-      
+
       // El backend devuelve { order, preferenceId }
       if (response.preferenceId) {
         setPreferenceId(response.preferenceId);
@@ -85,62 +118,59 @@ const PaymentMethods = ({ shippingData, cartItems }: PaymentMethodsProps) => {
           </div>
         )}
 
-        {/* Botón para crear preferencia o mostrar Wallet de Mercado Pago */}
-        {!preferenceId ? (
-          <button
-            type="button"
-            onClick={createPreference}
-            disabled={loading}
-            className="w-full p-6 bg-gris border-2 border-gray-600 rounded hover:border-verde transition-all cursor-pointer group disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center">
-                  <span className="text-2xl font-bold text-blue-500">MP</span>
-                </div>
-                <div className="text-left">
-                  <h3 className="text-white font-semibold text-lg group-hover:text-verde transition-colors">
-                    {loading ? 'Preparando pago...' : 'Mercado Pago'}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    Paga con tarjetas, efectivo o dinero en cuenta
-                  </p>
-                </div>
-              </div>
-              {!loading && (
-                <svg
-                  className="w-6 h-6 text-gray-400 group-hover:text-verde transition-colors"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              )}
-            </div>
-          </button>
-        ) : (
-          <div className="w-full">
-            {/* Botón oficial de Mercado Pago */}
-            <Wallet
-              initialization={{ preferenceId }}
-            />
-            
-            {/* Nota para desarrollo */}
-            {preferenceId === 'TEST-PREFERENCE-ID-PLACEHOLDER' && (
-              <div className="mt-4 p-3 bg-yellow-900 bg-opacity-20 border border-yellow-600 rounded">
-                <p className="text-yellow-400 text-xs">
-                  ⚠️ Modo de prueba: Conecta tu backend en PaymentMethods.tsx línea 32
+        {/* Botón para crear preferencia o mostrar Checkout Pro oficial */}
+        {/* Simulación: al hacer click, pasa directo a la confirmación */}
+        <button
+          type="button"
+          onClick={goToConfirmation}
+          className="w-full p-6 bg-gris border-2 border-gray-600 rounded hover:border-verde transition-all cursor-pointer group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.20.0/mercadopago/logo__large_plus.png" alt="Mercado Pago" className="w-16 h-16 bg-white rounded-lg object-contain p-2" />
+              <div className="text-left">
+                <h3 className="text-white font-semibold text-lg group-hover:text-verde transition-colors">
+                  Pagar con Mercado Pago
+                </h3>
+                <p className="text-gray-400 text-sm">
+                  Paga con tarjetas, efectivo o dinero en cuenta
                 </p>
               </div>
-            )}
+            </div>
+            <svg
+              className="w-6 h-6 text-gray-400 group-hover:text-verde transition-colors"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </div>
+        </button>
+        {/* Fin simulación */}
+        {/*
+        ) : (
+          <div className="w-full flex flex-col items-center gap-4">
+            <button
+              type="button"
+              onClick={() => {
+                // Redirigir a la URL oficial de Checkout Pro
+                window.open(`https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=${preferenceId}`, '_blank', 'noopener,noreferrer');
+              }}
+              className="w-full flex items-center justify-center gap-3 p-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded transition-all shadow-lg text-lg"
+            >
+              <img src="https://http2.mlstatic.com/frontend-assets/ui-navigation/5.20.0/mercadopago/logo__large_plus.png" alt="Mercado Pago" className="w-8 h-8 bg-white rounded object-contain p-1" />
+              Ir a pagar con Mercado Pago
+            </button>
+            <span className="text-xs text-gray-400">Serás redirigido a Mercado Pago para completar el pago de forma segura.</span>
           </div>
         )}
+        */}
 
         {/* Información adicional */}
         <div className="mt-6 p-4 bg-azul-oscuro rounded border border-gray-700">

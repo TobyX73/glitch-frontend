@@ -256,56 +256,7 @@ const ShippingForm = ({ onSubmit }: ShippingFormProps) => {
         </div>
       </div>
 
-      {/* Tipo de Envío */}
-      <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-white">Tipo de envío</h3>
-        
-        <div className="space-y-3">
-          {/* A Domicilio */}
-          <label className="flex items-center gap-3 cursor-pointer p-4 border border-gray-600 rounded hover:border-verde transition-colors">
-            <input
-              type="radio"
-              name="shippingType"
-              value="home"
-              checked={formData.shippingType === 'home'}
-              onChange={handleChange}
-              className="w-5 h-5 accent-verde cursor-pointer"
-            />
-            <span className="text-white font-medium">Envío a domicilio</span>
-          </label>
-
-          {/* A Sucursal */}
-          <label className="flex items-center gap-3 cursor-pointer p-4 border border-gray-600 rounded hover:border-verde transition-colors">
-            <input
-              type="radio"
-              name="shippingType"
-              value="branch"
-              checked={formData.shippingType === 'branch'}
-              onChange={handleChange}
-              className="w-5 h-5 accent-verde cursor-pointer"
-            />
-            <span className="text-white font-medium">Retiro en sucursal</span>
-          </label>
-        </div>
-
-        {/* Selector de Sucursal (si aplica) */}
-        {formData.shippingType === 'branch' && (
-          <div className="mt-4">
-            <select
-              name="branch"
-              value={formData.branch || ''}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-3 bg-gris border border-gray-600 text-white rounded focus:outline-none focus:border-verde cursor-pointer"
-            >
-              <option value="">Selecciona una sucursal</option>
-              <option value="sucursal-1">Sucursal Centro - Av. Corrientes 1234</option>
-              <option value="sucursal-2">Sucursal Norte - Av. Cabildo 5678</option>
-              <option value="sucursal-3">Sucursal Sur - Av. Rivadavia 9012</option>
-            </select>
-          </div>
-        )}
-      </div>
+      {/* Tipo de Envío - Eliminado hardcodeo y selector de sucursal */}
 
       {/* Botones de navegación */}
       <div className="flex items-center gap-4">

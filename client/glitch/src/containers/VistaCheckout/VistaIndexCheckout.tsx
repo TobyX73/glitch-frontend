@@ -75,6 +75,7 @@ const VistaIndexCheckout = () => {
                   <PaymentMethods 
                     shippingData={shippingData}
                     cartItems={state.items}
+                    goToConfirmation={() => setCurrentStep(3)}
                   />
                   
                   {/* Botón para volver */}
