@@ -54,7 +54,7 @@ const UserReview = () => {
               className="w-72 h-96 rounded-3xl overflow-hidden shadow-2xl z-20"
             >
               <img 
-                src="https://picsum.photos/450/600?random=10"
+                src="/ImagenClientes1.jpeg"
                 alt="Cliente Glitch 1"
                 className="w-full h-full object-cover"
               />
@@ -69,7 +69,7 @@ const UserReview = () => {
               className="w-72 h-96 rounded-3xl overflow-hidden shadow-2xl -ml-16 mt-12 z-10"
             >
               <img 
-                src="https://picsum.photos/450/600?random=11"
+                src="/ImagenClientes2.jpeg"
                 alt="Cliente Glitch 2"
                 className="w-full h-full object-cover"
               />

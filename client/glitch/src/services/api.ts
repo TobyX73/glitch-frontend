@@ -252,6 +252,7 @@ export interface Order {
   status: 'PENDING' | 'PAYMENT_PENDING' | 'PAID' | 'PREPARING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED' | 'REFUNDED';
   shippingAddress?: string;
   paymentStatus?: 'PENDING' | 'PAID' | 'FAILED';
+  notes?: string;
   createdAt?: string;
   updatedAt?: string;
 }

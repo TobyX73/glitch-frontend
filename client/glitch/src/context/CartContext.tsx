@@ -12,16 +12,26 @@ export interface CartItem {
   stock: number;
 }
 
+export interface ShippingInfo {
+  type: 'domicilio' | 'sucursal';
+  cost: number;
+  estimatedDays: number;
+  postalCode?: string;
+  province?: string;
+}
+
 interface CartState {
   items: CartItem[];
   totalItems: number;
   totalPrice: number;
+  shippingInfo: ShippingInfo | null;
 }
 
 type CartAction =
   | { type: 'ADD_ITEM'; payload: CartItem }
   | { type: 'REMOVE_ITEM'; payload: { id: number; size: string } }
   | { type: 'UPDATE_QUANTITY'; payload: { id: number; size: string; quantity: number } }
+  | { type: 'SET_SHIPPING'; payload: ShippingInfo }
   | { type: 'CLEAR_CART' };
 
 interface CartContextType {
@@ -29,9 +39,11 @@ interface CartContextType {
   addItem: (item: CartItem) => void;
   removeItem: (id: number, size: string) => void;
   updateQuantity: (id: number, size: string, quantity: number) => void;
+  setShipping: (shipping: ShippingInfo) => void;
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
+  getTotalWithShipping: () => number;
 }
 
 // Estado inicial
@@ -39,6 +51,7 @@ const initialState: CartState = {
   items: [],
   totalItems: 0,
   totalPrice: 0,
+  shippingInfo: null,
 };
 
 // Reducer
@@ -111,6 +124,12 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
       };
     }
 
+    case 'SET_SHIPPING':
+      return {
+        ...state,
+        shippingInfo: action.payload,
+      };
+
     case 'CLEAR_CART':
       return initialState;
 
@@ -150,6 +169,10 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
     dispatch({ type: 'UPDATE_QUANTITY', payload: { id, size, quantity } });
   };
 
+  const setShipping = (shipping: ShippingInfo) => {
+    dispatch({ type: 'SET_SHIPPING', payload: shipping });
+  };
+
   const clearCart = () => {
     dispatch({ type: 'CLEAR_CART' });
   };
@@ -158,14 +181,20 @@ export const CartProvider: React.FC<CartProviderProps> = ({ children }) => {
 
   const getTotalPrice = () => state.totalPrice;
 
+  const getTotalWithShipping = () => {
+    return state.totalPrice + (state.shippingInfo?.cost || 0);
+  };
+
   const value: CartContextType = {
     state,
     addItem,
     removeItem,
     updateQuantity,
+    setShipping,
     clearCart,
     getTotalItems,
     getTotalPrice,
+    getTotalWithShipping,
   };
 
   return (

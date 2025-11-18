@@ -7,6 +7,7 @@ import { VistaHome } from "../containers/VistaHome/VistaIndexHome"
 import VistaIndexClientes from "../containers/VistaClientes/VistaIndexClientes"
 import VistaProductoParticular from "../containers/VistaProductoParticular/VistaProductoParticular"
 import VistaIndexCheckout from "../containers/VistaCheckout/VistaIndexCheckout"
+import OrderSuccess from "../containers/VistaCheckout/OrderSuccess"
 import VistaIndexContacto from "../containers/VistaContacto/VistaIndexContacto"
 import VistaIndexNosotros from "../containers/VistaNosotros/VistaIndexNosotros"
 import VistaIndexRegister from "../containers/VistaRegister/VistaIndexRegister"
@@ -21,6 +22,7 @@ import VistaUsuariosAdmin from "../containers/VistaAdmin/UsuariosAdmin/VistaUsua
 import VerUsuario from "../containers/VistaAdmin/UsuariosAdmin/VerUsuario"
 import VistaOrdenesAdmin from "../containers/VistaAdmin/OrdenesAdmin/VistaOrdenesAdmin"
 import VerOrden from "../containers/VistaAdmin/OrdenesAdmin/VerOrden"
+import VistaOrdenesCliente from "../containers/VistaClientes/VistaOrdenesCliente"
 import { CartProvider } from "../context/CartContext"
 import { AuthProvider } from "../context/AuthContext"
 
@@ -76,6 +78,18 @@ function App() {
               <Footer />
             </div>
           } />
+          
+          {/* Página de confirmación de orden */}
+          <Route path="/order-success" element={
+            <div className="min-h-screen flex flex-col">
+              <Navbar />
+              <main className="flex-1">
+                <OrderSuccess />
+              </main>
+              <Footer />
+            </div>
+          } />
+          
           <Route path="/contacto" element={
             <div className="min-h-screen flex flex-col">
               <Navbar />
@@ -94,6 +108,20 @@ function App() {
               <Footer />
             </div>
           } />
+          
+          {/* Ruta de órdenes del usuario (protegida - requiere login) */}
+          <Route path="/mis-ordenes" element={
+            <ProtectedRoute>
+              <div className="min-h-screen flex flex-col">
+                <Navbar />
+                <main className="flex-1">
+                  <VistaOrdenesCliente />
+                </main>
+                <Footer />
+              </div>
+            </ProtectedRoute>
+          } />
+          
           <Route path="/register" element={<VistaIndexRegister />} />
           <Route path="/login" element={<VistaIndexLogin />} />
 

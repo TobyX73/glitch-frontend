@@ -14,13 +14,8 @@ interface VistaIndexCarritoProps {
 
 const VistaIndexCarrito = ({ isOpen, onClose }: VistaIndexCarritoProps) => {
   const navigate = useNavigate();
-  const { state, updateQuantity, removeItem } = useCart();
-  const [shippingCost, setShippingCost] = useState<number>(0);
+  const { state, updateQuantity, removeItem, getTotalWithShipping } = useCart();
   const [discount, setDiscount] = useState<number>(0);
-
-  const handleShippingSelect = (cost: number) => {
-    setShippingCost(cost);
-  };
 
   const handleCouponApply = (coupon: string) => {
     console.log('Aplicando cupón:', coupon);
@@ -86,16 +81,15 @@ const VistaIndexCarrito = ({ isOpen, onClose }: VistaIndexCarritoProps) => {
 
                   <ShippingCalculator 
                     cartItems={state.items.map(item => ({ id: item.id, quantity: item.quantity }))}
-                    onShippingSelect={handleShippingSelect}
                   />
 
                   <DiscountCoupon onApply={handleCouponApply} />
 
-                  {(shippingCost > 0 || discount > 0) && (
+                  {(state.shippingInfo || discount > 0) && (
                     <div className="py-4">
                       <CartSummary
                         subtotal={state.totalPrice}
-                        shippingCost={shippingCost}
+                        shippingCost={state.shippingInfo?.cost || 0}
                         discount={discount}
                       />
                     </div>

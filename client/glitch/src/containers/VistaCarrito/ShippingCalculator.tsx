@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { deliveryAPI } from '../../services/api';
+import { useCart } from '../../context/CartContext';
 
 interface ShippingCalculatorProps {
   cartItems: { id: number; quantity: number }[];
-  onShippingSelect?: (cost: number) => void;
 }
 
 interface ShippingOption {
@@ -13,14 +13,17 @@ interface ShippingOption {
   days: number;
 }
 
-const ShippingCalculator = ({ cartItems, onShippingSelect }: ShippingCalculatorProps) => {
+const ShippingCalculator = ({ cartItems }: ShippingCalculatorProps) => {
+  const { setShipping, state } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [postalCode, setPostalCode] = useState('');
   const [shippingOptions, setShippingOptions] = useState<{
     domicilio?: ShippingOption;
     sucursal?: ShippingOption;
   } | null>(null);
-  const [selectedOption, setSelectedOption] = useState<'domicilio' | 'sucursal' | null>(null);
+  const [selectedOption, setSelectedOption] = useState<'domicilio' | 'sucursal' | null>(
+    state.shippingInfo?.type || null
+  );
   const [calculating, setCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,8 +66,13 @@ const ShippingCalculator = ({ cartItems, onShippingSelect }: ShippingCalculatorP
   const handleSelectOption = (option: 'domicilio' | 'sucursal') => {
     setSelectedOption(option);
     const selected = shippingOptions?.[option];
-    if (selected && onShippingSelect) {
-      onShippingSelect(selected.price);
+    if (selected) {
+      setShipping({
+        type: option,
+        cost: selected.price,
+        estimatedDays: selected.days,
+        postalCode: postalCode
+      });
     }
   };
 

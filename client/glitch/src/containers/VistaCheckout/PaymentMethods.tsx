@@ -1,5 +1,8 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
+import { ordersAPI } from '../../services/api';
+import { useCart } from '../../context/CartContext';
 
 interface PaymentMethodsProps {
   shippingData: any; // Datos del formulario de envío
@@ -7,8 +10,12 @@ interface PaymentMethodsProps {
 }
 
 const PaymentMethods = ({ shippingData, cartItems }: PaymentMethodsProps) => {
+  const navigate = useNavigate();
+  const { state, clearCart } = useCart();
   const [preferenceId, setPreferenceId] = useState<string | null>(null);
+  const [orderId, setOrderId] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Inicializar Mercado Pago con tu Public Key
   useEffect(() => {
@@ -21,49 +28,42 @@ const PaymentMethods = ({ shippingData, cartItems }: PaymentMethodsProps) => {
   // Función para crear la preferencia de pago
   const createPreference = async () => {
     setLoading(true);
+    setError(null);
     
     try {
-      // TODO: Reemplaza esta URL con la de tu backend
-      // Ejemplo: const response = await fetch('http://localhost:3000/api/create-preference', {
-      const response = await fetch('/api/create-preference', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          items: cartItems.map(item => ({
-            id: item.id,
-            title: item.title,
-            quantity: item.quantity,
-            unit_price: parseFloat(item.price.replace(/[^0-9.-]+/g, '')),
-            currency_id: 'ARS'
-          })),
-          payer: {
-            name: shippingData.firstName,
-            surname: shippingData.lastName,
-            email: shippingData.email,
-          },
-          shipments: {
-            cost: 0,
-            mode: shippingData.shippingType === 'home' ? 'custom' : 'not_specified'
-          },
-          back_urls: {
-            success: `${window.location.origin}/checkout/success`,
-            failure: `${window.location.origin}/checkout/failure`,
-            pending: `${window.location.origin}/checkout/pending`
-          },
-          auto_return: 'approved'
-        })
-      });
-
-      const data = await response.json();
-      setPreferenceId(data.preferenceId);
-    } catch (error) {
-      console.error('Error al crear la preferencia de pago:', error);
+      // Preparar dirección de envío
+      const shippingAddress = `${shippingData.address}, ${shippingData.apartment ? shippingData.apartment + ', ' : ''}${shippingData.city}, CP: ${shippingData.zipCode}`;
       
-      // PLACEHOLDER: Preferencia de ejemplo para testing
-      // Cuando conectes tu backend, elimina esta línea
-      setPreferenceId('TEST-PREFERENCE-ID-PLACEHOLDER');
+      // Preparar items del carrito
+      const orderItems = cartItems.map(item => ({
+        productId: item.id,
+        quantity: item.quantity,
+        price: parseFloat(item.price.replace(/[^0-9.-]+/g, ''))
+      }));
+      
+      // Crear orden en el backend
+      const checkoutData = {
+        items: orderItems,
+        shippingAddress: shippingAddress,
+        paymentMethod: 'mercadopago'
+      };
+      
+      console.log('Creando orden con:', checkoutData);
+      
+      const response = await ordersAPI.checkoutComplete(checkoutData);
+      
+      console.log('Respuesta del backend:', response);
+      
+      // El backend devuelve { order, preferenceId }
+      if (response.preferenceId) {
+        setPreferenceId(response.preferenceId);
+        setOrderId(response.order.id);
+      } else {
+        throw new Error('No se recibió preference ID del backend');
+      }
+    } catch (error: any) {
+      console.error('Error al crear la preferencia de pago:', error);
+      setError(error.response?.data?.message || 'Error al procesar el pago. Intentá de nuevo.');
     } finally {
       setLoading(false);
     }
@@ -77,6 +77,13 @@ const PaymentMethods = ({ shippingData, cartItems }: PaymentMethodsProps) => {
         <p className="text-gray-400 text-sm mb-6">
           Selecciona tu método de pago preferido para completar la compra de forma segura.
         </p>
+
+        {/* Error */}
+        {error && (
+          <div className="p-4 bg-red-900 border border-red-500 rounded">
+            <p className="text-red-200">{error}</p>
+          </div>
+        )}
 
         {/* Botón para crear preferencia o mostrar Wallet de Mercado Pago */}
         {!preferenceId ? (

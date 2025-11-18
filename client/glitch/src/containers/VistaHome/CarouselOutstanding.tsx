@@ -1,8 +1,6 @@
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { EffectCoverflow, Pagination, Autoplay } from 'swiper/modules';
+import { Autoplay } from 'swiper/modules';
 import 'swiper/css';
-import 'swiper/css/effect-coverflow';
-import 'swiper/css/pagination';
 import VerMasButton from '../../components/VerMasButton';
 
 const CarouselOutstanding = () => {
@@ -10,39 +8,39 @@ const CarouselOutstanding = () => {
   const products = [
     {
       id: 1,
-      name: 'Remera Destacada 1',
+      name: 'Hollow Knight - Blanco Oversize',
       price: '$30.000,00',
-      image: '/oversize blanco-01 6.svg'
+      image: '/HollowKnight/d1-blanco-oversize.png'
     },
     {
       id: 2,
-      name: 'Remera Destacada 2',
-      price: '$32.000,00',
-      image: '/oversize blanco-02.svg'
+      name: 'Hollow Knight - Negro Oversize',
+      price: '$30.000,00',
+      image: '/HollowKnight/d1-negro-oversize.png'
     },
     {
       id: 3,
-      name: 'Remera Destacada 3',
-      price: '$28.000,00',
-      image: '/oversize blanco-01 6.svg'
+      name: 'Hotline Miami',
+      price: '$32.000,00',
+      image: '/HotlineMiami/Asset 3.png'
     },
     {
       id: 4,
-      name: 'Remera Destacada 4',
-      price: '$31.000,00',
-      image: '/oversize blanco-02.svg'
+      name: 'Hotline Miami',
+      price: '$32.000,00',
+      image: '/HotlineMiami/Asset 5.png'
     },
     {
       id: 5,
-      name: 'Remera Destacada 5',
-      price: '$29.000,00',
-      image: '/oversize blanco-01 6.svg'
+      name: 'Hollow Knight - Blanco Oversize Esp',
+      price: '$30.000,00',
+      image: '/HollowKnight/d2-blanco-oversize.png'
     },
     {
       id: 6,
-      name: 'Remera Destacada 6',
-      price: '$33.000,00',
-      image: '/oversize blanco-02.svg'
+      name: 'Hotline Miami',
+      price: '$32.000,00',
+      image: '/HotlineMiami/Asset 7.png'
     }
   ];
 
@@ -56,43 +54,47 @@ const CarouselOutstanding = () => {
         </p>
       </div>
 
-      {/* Carousel con Swiper CoverFlow */}
+      {/* Carousel con Swiper Loop Infinito */}
       <div className="w-full max-w-7xl mx-auto px-4">
         <Swiper
-          effect={'coverflow'}
           grabCursor={true}
           centeredSlides={true}
-          slidesPerView={'auto'}
-          coverflowEffect={{
-            rotate: 50,
-            stretch: 0,
-            depth: 100,
-            modifier: 1,
-            slideShadows: true,
-          }}
+          slidesPerView={3}
+          spaceBetween={30}
           autoplay={{
-            delay: 2000,
+            delay: 0,
             disableOnInteraction: false,
-            pauseOnMouseEnter: false,
-            waitForTransition: true,
-          }}
-          pagination={{
-            clickable: true,
           }}
           loop={true}
-          speed={800}
-          loopAdditionalSlides={1}
-          modules={[EffectCoverflow, Pagination, Autoplay]}
-          className="pb-16"
+          loopedSlides={6}
+          speed={3000}
+          freeMode={true}
+          freeModeMomentum={false}
+          breakpoints={{
+            320: {
+              slidesPerView: 1,
+              spaceBetween: 20,
+            },
+            640: {
+              slidesPerView: 2,
+              spaceBetween: 20,
+            },
+            1024: {
+              slidesPerView: 3,
+              spaceBetween: 30,
+            },
+          }}
+          modules={[Autoplay]}
+          className="pb-8"
         >
           {products.map((product, index) => (
-            <SwiperSlide key={`${product.id}-${index}`} className="!w-80">
+            <SwiperSlide key={`${product.id}-${index}`}>
               <div 
-                className="w-full h-96 rounded-3xl flex items-center justify-center p-6 overflow-hidden">
+                className="w-full h-96 rounded-3xl flex items-center justify-center p-6 overflow-hidden bg-azul-oscuro border border-gray-700 hover:border-verde transition-all shadow-xl">
                 <img 
                   src={product.image}
                   alt={product.name}
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain hover:scale-105 transition-transform duration-300"
                 />
               </div>
             </SwiperSlide>
