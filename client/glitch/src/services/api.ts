@@ -339,15 +339,138 @@ export const deliveryAPI = {
     postalCode: string;
     items: { productId: number; quantity: number; categoryId?: number }[];
   }): Promise<{ cost: number; estimatedDays: string; carrier: string }> => {
+    console.log('🔥 API.TS - Enviando:', JSON.stringify(data, null, 2));
+    
     const response = await api.post<{ 
       success: boolean; 
       data: { 
-        cost: number; 
-        estimatedDays: string; 
-        carrier: string;
+        postalCode: string;
+        packaging: any;
+        options: {
+          domicilio?: { precio: number; tiempoEntrega: number; servicio: string };
+          sucursal?: { precio: number; tiempoEntrega: number; servicio: string };
+        };
+        rawApiResponse: any;
       } 
     }>('/delivery/quote', data);
-    return response.data.data;
+    
+    console.log('🔥 API.TS - Respuesta completa:', response.data);
+    
+    // Extraer la opción a domicilio por defecto
+    const deliveryData = response.data.data;
+    
+    console.log('🔥 deliveryData:', deliveryData);
+    console.log('🔥 deliveryData.options:', deliveryData.options);
+    console.log('🔥 deliveryData.rawApiResponse:', deliveryData.rawApiResponse);
+    
+    // Intentar primero con options (estructura esperada)
+    let option = deliveryData.options?.domicilio || deliveryData.options?.sucursal;
+    
+    // Si options está vacío, extraer directamente de rawApiResponse
+    if (!option && deliveryData.rawApiResponse) {
+      const raw = deliveryData.rawApiResponse;
+      // Buscar en paqarClasico o pagoClasico (typo en backend)
+      const clasico = raw.paqarClasico || raw.pagoClasico;
+      
+      if (clasico) {
+        const precio = clasico.aDomicilio || clasico.aSucursal;
+        if (precio) {
+          option = {
+            precio: precio,
+            tiempoEntrega: 5, // Valor por defecto
+            servicio: 'Correo Argentino'
+          };
+          console.log('🔥 Opción extraída de rawApiResponse:', option);
+        }
+      }
+    }
+    
+    if (!option) {
+      console.error('No hay opciones disponibles:', deliveryData);
+      console.error('Estructura completa:', JSON.stringify(deliveryData, null, 2));
+      throw new Error('No hay opciones de envío disponibles');
+    }
+    
+    const result = {
+      cost: option.precio,
+      estimatedDays: `${option.tiempoEntrega} días hábiles`,
+      carrier: option.servicio
+    };
+    
+    console.log('🔥 API.TS - Resultado formateado:', result);
+    return result;
+  },
+
+  // Calcular envío con ambas opciones (domicilio y sucursal)
+  calculateShippingWithOptions: async (data: {
+    postalCode: string;
+    items: { productId: number; quantity: number; categoryId?: number }[];
+  }): Promise<{
+    domicilio?: { type: 'domicilio'; price: number; days: number };
+    sucursal?: { type: 'sucursal'; price: number; days: number };
+  }> => {
+    const response = await api.post<{ 
+      success: boolean; 
+      data: { 
+        postalCode: string;
+        packaging: any;
+        options: {
+          domicilio?: { precio: number; tiempoEntrega: number; servicio: string };
+          sucursal?: { precio: number; tiempoEntrega: number; servicio: string };
+        };
+        rawApiResponse: any;
+      } 
+    }>('/delivery/quote', data);
+    
+    const deliveryData = response.data.data;
+    const raw = deliveryData.rawApiResponse;
+    const clasico = raw?.paqarClasico || raw?.pagoClasico;
+    
+    const result: any = {};
+    
+    if (clasico?.aDomicilio) {
+      result.domicilio = {
+        type: 'domicilio' as const,
+        price: clasico.aDomicilio,
+        days: 5
+      };
+    }
+    
+    if (clasico?.aSucursal) {
+      result.sucursal = {
+        type: 'sucursal' as const,
+        price: clasico.aSucursal,
+        days: 3
+      };
+    }
+    
+    return result;
+  },
+
+  // Obtener sucursales cercanas por provincia
+  getBranches: async (provincia: string): Promise<Array<{
+    nombre: string;
+    direccion: string;
+    localidad: string;
+  }>> => {
+    try {
+      const response = await api.get<{
+        success: boolean;
+        data: {
+          sucursales: Array<{
+            nombre: string;
+            direccion: string;
+            localidad: string;
+            provincia: string;
+          }>;
+        };
+      }>(`/delivery/branches/${encodeURIComponent(provincia)}`);
+      
+      return response.data.data?.sucursales || [];
+    } catch (error) {
+      console.error('Error obteniendo sucursales:', error);
+      return [];
+    }
   },
 
   // Calcular precio de envío por dimensiones físicas

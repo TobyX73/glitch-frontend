@@ -4,22 +4,29 @@ import { deliveryAPI } from '../../services/api';
 
 interface ShippingCalculatorProps {
   cartItems: { id: number; quantity: number }[];
+  onShippingSelect?: (cost: number) => void;
 }
 
-const ShippingCalculator = ({ cartItems }: ShippingCalculatorProps) => {
+interface ShippingOption {
+  type: 'domicilio' | 'sucursal';
+  price: number;
+  days: number;
+}
+
+const ShippingCalculator = ({ cartItems, onShippingSelect }: ShippingCalculatorProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [postalCode, setPostalCode] = useState('');
-  const [shippingCost, setShippingCost] = useState<{
-    cost: number;
-    estimatedDays: string;
-    carrier: string;
+  const [shippingOptions, setShippingOptions] = useState<{
+    domicilio?: ShippingOption;
+    sucursal?: ShippingOption;
   } | null>(null);
+  const [selectedOption, setSelectedOption] = useState<'domicilio' | 'sucursal' | null>(null);
   const [calculating, setCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleCalculate = async () => {
-    if (!postalCode || postalCode.length < 4) {
-      setError('Ingresá un código postal válido');
+    if (!postalCode || postalCode.length !== 4 || !/^\d{4}$/.test(postalCode)) {
+      setError('Ingresá un código postal válido (4 dígitos)');
       return;
     }
 
@@ -31,23 +38,33 @@ const ShippingCalculator = ({ cartItems }: ShippingCalculatorProps) => {
     try {
       setCalculating(true);
       setError(null);
+      setShippingOptions(null);
+      setSelectedOption(null);
       
       const items = cartItems.map(item => ({
         productId: item.id,
         quantity: item.quantity
       }));
 
-      const result = await deliveryAPI.calculateShipping({
-        zipCode: postalCode,
+      const result = await deliveryAPI.calculateShippingWithOptions({
+        postalCode: postalCode,
         items
       });
 
-      setShippingCost(result);
+      setShippingOptions(result);
     } catch (err: any) {
       console.error('Error al calcular envío:', err);
       setError(err.response?.data?.message || 'No se pudo calcular el envío');
     } finally {
       setCalculating(false);
+    }
+  };
+
+  const handleSelectOption = (option: 'domicilio' | 'sucursal') => {
+    setSelectedOption(option);
+    const selected = shippingOptions?.[option];
+    if (selected && onShippingSelect) {
+      onShippingSelect(selected.price);
     }
   };
 
@@ -79,10 +96,11 @@ const ShippingCalculator = ({ cartItems }: ShippingCalculatorProps) => {
           >
             <div className="flex gap-2 mt-4">
               <input
-                type="text"
+                type="tel"
                 value={postalCode}
-                onChange={(e) => setPostalCode(e.target.value)}
-                placeholder="Código postal"
+                onChange={(e) => setPostalCode(e.target.value.replace(/\D/g, ''))}
+                placeholder="Código postal (4 dígitos)"
+                maxLength={4}
                 className="flex-1 px-3 py-2 bg-gris border border-gray-600 text-white text-sm focus:outline-none focus:border-verde placeholder-gray-500"
               />
               <button
@@ -95,12 +113,48 @@ const ShippingCalculator = ({ cartItems }: ShippingCalculatorProps) => {
               </button>
             </div>
             
-            {/* Resultado */}
-            {shippingCost && (
-              <div className="mt-3 p-3 bg-azul-oscuro border border-verde rounded">
-                <p className="text-verde font-semibold">${shippingCost.cost.toLocaleString('es-AR')}</p>
-                <p className="text-white text-xs">{shippingCost.carrier}</p>
-                <p className="text-gray-400 text-xs">{shippingCost.estimatedDays}</p>
+            {/* Resultados */}
+            {shippingOptions && (
+              <div className="mt-3 space-y-2">
+                {/* Opción Domicilio */}
+                {shippingOptions.domicilio && (
+                  <div 
+                    className={`p-3 border cursor-pointer transition-all ${
+                      selectedOption === 'domicilio' 
+                        ? 'bg-azul-oscuro border-verde' 
+                        : 'bg-gris border-gray-600 hover:border-verde'
+                    }`}
+                    onClick={() => handleSelectOption('domicilio')}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-white text-sm font-semibold">Envío a domicilio</p>
+                        <p className="text-gray-400 text-xs">{shippingOptions.domicilio.days} días hábiles</p>
+                      </div>
+                      <p className="text-verde font-bold">${shippingOptions.domicilio.price.toLocaleString('es-AR')}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Opción Sucursal */}
+                {shippingOptions.sucursal && (
+                  <div 
+                    className={`p-3 border cursor-pointer transition-all ${
+                      selectedOption === 'sucursal' 
+                        ? 'bg-azul-oscuro border-verde' 
+                        : 'bg-gris border-gray-600 hover:border-verde'
+                    }`}
+                    onClick={() => handleSelectOption('sucursal')}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-white text-sm font-semibold">Retiro en sucursal</p>
+                        <p className="text-gray-400 text-xs">{shippingOptions.sucursal.days} días hábiles</p>
+                      </div>
+                      <p className="text-verde font-bold">${shippingOptions.sucursal.price.toLocaleString('es-AR')}</p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             

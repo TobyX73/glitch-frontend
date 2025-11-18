@@ -18,9 +18,8 @@ const VistaIndexCarrito = ({ isOpen, onClose }: VistaIndexCarritoProps) => {
   const [shippingCost, setShippingCost] = useState<number>(0);
   const [discount, setDiscount] = useState<number>(0);
 
-  const handleShippingCalculate = (postalCode: string) => {
-    console.log('Calculando envío para:', postalCode);
-    setShippingCost(2000);
+  const handleShippingSelect = (cost: number) => {
+    setShippingCost(cost);
   };
 
   const handleCouponApply = (coupon: string) => {
@@ -85,7 +84,10 @@ const VistaIndexCarrito = ({ isOpen, onClose }: VistaIndexCarritoProps) => {
                     <CartSummary subtotal={state.totalPrice} />
                   </div>
 
-                  <ShippingCalculator cartItems={state.items.map(item => ({ id: item.id, quantity: item.quantity }))} />
+                  <ShippingCalculator 
+                    cartItems={state.items.map(item => ({ id: item.id, quantity: item.quantity }))}
+                    onShippingSelect={handleShippingSelect}
+                  />
 
                   <DiscountCoupon onApply={handleCouponApply} />
 

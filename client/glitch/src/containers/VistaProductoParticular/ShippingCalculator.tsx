@@ -5,38 +5,92 @@ interface ShippingCalculatorProps {
   productId: number;
 }
 
+interface ShippingOption {
+  type: 'domicilio' | 'sucursal';
+  price: number;
+  days: number;
+}
+
+interface Branch {
+  nombre: string;
+  direccion: string;
+  localidad: string;
+}
+
 const ShippingCalculator = ({ productId }: ShippingCalculatorProps) => {
   const [postalCode, setPostalCode] = useState('');
-  const [shippingCost, setShippingCost] = useState<{
-    cost: number;
-    estimatedDays: string;
-    carrier: string;
+  const [shippingOptions, setShippingOptions] = useState<{
+    domicilio?: ShippingOption;
+    sucursal?: ShippingOption;
   } | null>(null);
+  const [selectedOption, setSelectedOption] = useState<'domicilio' | 'sucursal' | null>(null);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [loadingBranches, setLoadingBranches] = useState(false);
   const [calculating, setCalculating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleCalculate = async () => {
-    if (!postalCode || postalCode.length < 4) {
-      setError('Ingresá un código postal válido');
+    if (!postalCode || postalCode.length !== 4 || !/^\d{4}$/.test(postalCode)) {
+      setError('Ingresá un código postal válido (4 dígitos)');
       return;
     }
 
     try {
       setCalculating(true);
       setError(null);
+      setShippingOptions(null);
+      setSelectedOption(null);
+      setBranches([]);
       
-      const result = await deliveryAPI.calculateShipping({
-        zipCode: postalCode,
+      const payload = {
+        postalCode: postalCode,
         items: [{ productId, quantity: 1 }]
-      });
+      };
+      
+      console.log('🔥 COMPONENTE - Enviando:', payload);
+      
+      const result = await deliveryAPI.calculateShippingWithOptions(payload);
 
-      setShippingCost(result);
+      setShippingOptions(result);
     } catch (err: any) {
       console.error('Error al calcular envío:', err);
       setError(err.response?.data?.message || 'No se pudo calcular el envío');
     } finally {
       setCalculating(false);
     }
+  };
+
+  const loadBranches = async () => {
+    try {
+      setLoadingBranches(true);
+      
+      // Mapear código postal a provincia
+      const provincia = mapPostalCodeToProvince(postalCode);
+      
+      const result = await deliveryAPI.getBranches(provincia);
+      setBranches(result);
+    } catch (err) {
+      console.error('Error cargando sucursales:', err);
+    } finally {
+      setLoadingBranches(false);
+    }
+  };
+
+  // Mapeo simple de códigos postales a provincias argentinas
+  const mapPostalCodeToProvince = (cp: string): string => {
+    const code = parseInt(cp);
+    
+    // Mapeo de rangos de CP a provincias
+    if (code >= 1000 && code <= 1999) return 'Buenos Aires';
+    if (code >= 2000 && code <= 2999) return 'Buenos Aires';
+    if (code >= 3000 && code <= 3999) return 'Entre Ríos';
+    if (code >= 4000 && code <= 4999) return 'Jujuy';
+    if (code >= 5000 && code <= 5999) return 'Córdoba';
+    if (code >= 6000 && code <= 6999) return 'Buenos Aires';
+    if (code >= 7000 && code <= 7999) return 'Buenos Aires';
+    if (code >= 8000 && code <= 8999) return 'Buenos Aires';
+    
+    return 'Buenos Aires'; // Default
   };
 
   return (
@@ -62,12 +116,75 @@ const ShippingCalculator = ({ productId }: ShippingCalculatorProps) => {
         </button>
       </div>
       
-      {/* Resultado */}
-      {shippingCost && (
-        <div className="mt-3 p-4 bg-azul-oscuro border border-verde rounded">
-          <p className="text-verde font-semibold text-lg">${shippingCost.cost.toLocaleString('es-AR')}</p>
-          <p className="text-white text-sm">{shippingCost.carrier}</p>
-          <p className="text-gray-400 text-xs">{shippingCost.estimatedDays}</p>
+      {/* Resultados */}
+      {shippingOptions && (
+        <div className="mt-3 space-y-2">
+          {/* Opción Domicilio */}
+          {shippingOptions.domicilio && (
+            <div 
+              className={`p-4 border cursor-pointer transition-all ${
+                selectedOption === 'domicilio' 
+                  ? 'bg-azul-oscuro border-verde' 
+                  : 'bg-gris border-gray-600 hover:border-verde'
+              }`}
+              onClick={() => setSelectedOption('domicilio')}
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-white font-semibold">Envío a domicilio</p>
+                  <p className="text-gray-400 text-xs">{shippingOptions.domicilio.days} días hábiles</p>
+                </div>
+                <p className="text-verde font-bold text-lg">${shippingOptions.domicilio.price.toLocaleString('es-AR')}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Opción Sucursal */}
+          {shippingOptions.sucursal && (
+            <div>
+              <div 
+                className={`p-4 border cursor-pointer transition-all ${
+                  selectedOption === 'sucursal' 
+                    ? 'bg-azul-oscuro border-verde' 
+                    : 'bg-gris border-gray-600 hover:border-verde'
+                }`}
+                onClick={() => {
+                  setSelectedOption('sucursal');
+                  if (!branches.length) loadBranches();
+                }}
+              >
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-white font-semibold">Retiro en sucursal</p>
+                    <p className="text-gray-400 text-xs">{shippingOptions.sucursal.days} días hábiles</p>
+                  </div>
+                  <p className="text-verde font-bold text-lg">${shippingOptions.sucursal.price.toLocaleString('es-AR')}</p>
+                </div>
+              </div>
+
+              {/* Lista de sucursales */}
+              {selectedOption === 'sucursal' && (
+                <div className="mt-2 p-3 bg-gris border border-gray-600">
+                  {loadingBranches ? (
+                    <p className="text-gray-400 text-sm">Buscando sucursales cercanas...</p>
+                  ) : branches.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-white text-sm font-semibold mb-2">Sucursales cercanas:</p>
+                      {branches.slice(0, 3).map((branch, idx) => (
+                        <div key={idx} className="text-xs text-gray-300 border-l-2 border-verde pl-2">
+                          <p className="font-semibold">{branch.nombre}</p>
+                          <p>{branch.direccion}</p>
+                          <p className="text-gray-500">{branch.localidad}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-400 text-sm">No se encontraron sucursales cercanas</p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
       
