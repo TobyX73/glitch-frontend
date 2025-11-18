@@ -11,7 +11,7 @@ const OrderSuccess = () => {
 
   useEffect(() => {
     const orderId = searchParams.get('order_id');
-    const paymentStatus = searchParams.get('status');
+    //const paymentStatus = searchParams.get('status');
     
     if (orderId) {
       loadOrder(parseInt(orderId));

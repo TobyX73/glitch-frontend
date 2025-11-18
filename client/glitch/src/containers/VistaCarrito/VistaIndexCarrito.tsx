@@ -14,7 +14,7 @@ interface VistaIndexCarritoProps {
 
 const VistaIndexCarrito = ({ isOpen, onClose }: VistaIndexCarritoProps) => {
   const navigate = useNavigate();
-  const { state, updateQuantity, removeItem, getTotalWithShipping } = useCart();
+  const { state, updateQuantity, removeItem /*, getTotalWithShipping */ } = useCart();
   const [discount, setDiscount] = useState<number>(0);
 
   const handleCouponApply = (coupon: string) => {

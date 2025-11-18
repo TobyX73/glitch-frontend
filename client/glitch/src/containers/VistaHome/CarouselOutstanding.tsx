@@ -66,10 +66,8 @@ const CarouselOutstanding = () => {
             disableOnInteraction: false,
           }}
           loop={true}
-          loopedSlides={6}
           speed={3000}
           freeMode={true}
-          freeModeMomentum={false}
           breakpoints={{
             320: {
               slidesPerView: 1,

@@ -19,7 +19,8 @@ interface ShippingFormProps {
 }
 
 const ShippingForm = ({ onSubmit }: ShippingFormProps) => {
-  const { items, state, setShipping } = useCart();
+  const {state, setShipping } = useCart();
+  const items = state.items;
   const [formData, setFormData] = useState<ShippingFormData>({
     email: '',
     firstName: '',

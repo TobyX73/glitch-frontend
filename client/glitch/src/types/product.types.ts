@@ -34,7 +34,8 @@ export interface Product {
   
   price?: number;              
   stock?: number;              
-  sizes?: string[];             
+  sizes?: string[];  
+  imageURLs?: string[];           
 }
 
 export interface ProductFormData {

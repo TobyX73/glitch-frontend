@@ -453,32 +453,6 @@ export const deliveryAPI = {
     return result;
   },
 
-  // Obtener sucursales cercanas por provincia
-  getBranches: async (provincia: string): Promise<Array<{
-    nombre: string;
-    direccion: string;
-    localidad: string;
-  }>> => {
-    try {
-      const response = await api.get<{
-        success: boolean;
-        data: {
-          sucursales: Array<{
-            nombre: string;
-            direccion: string;
-            localidad: string;
-            provincia: string;
-          }>;
-        };
-      }>(`/delivery/branches/${encodeURIComponent(provincia)}`);
-      
-      return response.data.data?.sucursales || [];
-    } catch (error) {
-      console.error('Error obteniendo sucursales:', error);
-      return [];
-    }
-  },
-
   // Calcular precio de envío por dimensiones físicas
   calculatePrice: async (data: {
     cpDestino: string;

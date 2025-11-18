@@ -182,9 +182,9 @@ const VistaOrdenesCliente = () => {
                           const product = order.productsData?.find(p => p.id === item.productId);
                           return (
                             <div key={idx} className="flex items-center gap-4 bg-azul-oscuro p-3 rounded border border-gray-700">
-                              {product?.imageUrl ? (
+                              {product?.imageURLs && product.imageURLs.length > 0 ? (
                                 <img 
-                                  src={product.imageUrl} 
+                                  src={product.imageURLs[0]} 
                                   alt={product.name}
                                   className="w-16 h-16 object-cover rounded"
                                 />

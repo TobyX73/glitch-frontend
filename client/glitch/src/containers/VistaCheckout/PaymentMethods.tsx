@@ -1,8 +1,8 @@
 
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
-import { ordersAPI } from '../../services/api';
+//import { useNavigate } from 'react-router-dom';
+//import { initMercadoPago, Wallet } from '@mercadopago/sdk-react';
+// import { ordersAPI } from '../../services/api'; // Comentado: llamadas reales al backend no necesarias para la simulación
 import { useCart } from '../../context/CartContext';
 
 interface PaymentMethodsProps {
@@ -12,20 +12,23 @@ interface PaymentMethodsProps {
 }
 
 const PaymentMethods = ({ shippingData, cartItems, goToConfirmation }: PaymentMethodsProps) => {
-  const navigate = useNavigate();
-  const { state, clearCart } = useCart();
-  const [preferenceId, setPreferenceId] = useState<string | null>(null);
-  const [orderId, setOrderId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+ // const navigate = useNavigate(); // No usado, documentado para evitar warning TS6133
+const { state /*, clearCart*/ } = useCart(); // clearCart no usado
+// const [preferenceId, setPreferenceId] = useState<string | null>(null); // No usado
+// const [orderId, setOrderId] = useState<number | null>(null); // No usado
+const [loading, setLoading] = useState(false);
+const [error, setError] = useState<string | null>(null);
 
   // Inicializar Mercado Pago con tu Public Key
+  // Inicializar Mercado Pago (comentado para simulación local)
+  /*
   useEffect(() => {
     const publicKey = import.meta.env.VITE_MERCADOPAGO_PUBLIC_KEY;
     if (publicKey) {
       initMercadoPago(publicKey);
     }
   }, []);
+  */
 
   // Validar que la info de envío esté presente y correcta
   const isShippingValid = () => {
@@ -36,77 +39,12 @@ const PaymentMethods = ({ shippingData, cartItems, goToConfirmation }: PaymentMe
     return true;
   };
 
-  // Función para crear la preferencia de pago
+  // Función para crear preferencia (comentada para evitar llamadas reales durante la simulación)
+  /*
   const createPreference = async () => {
-    setLoading(true);
-    setError(null);
-
-    // Validar datos de envío
-    if (!isShippingValid()) {
-      setError('Debes calcular y seleccionar una opción de envío antes de pagar.');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const shipping = state.shippingInfo;
-
-      if (!shipping) {
-        setError('Información de envío no disponible.');
-        setLoading(false);
-      return;
-      }      
-
-      // Preparar shippingAddress como objeto
-      const shippingAddress = {
-        address: shippingData.address,
-        apartment: shippingData.apartment,
-        city: shippingData.city,
-        zipCode: shippingData.zipCode,
-        type: shipping.type,
-        cost: shipping.cost,
-        estimatedDays: shipping.estimatedDays,
-        postalCode: shipping.postalCode,
-        province: shipping.province || ''
-      };
-
-      // Preparar items del carrito
-      const orderItems = cartItems.map(item => ({
-        productId: item.id,
-        quantity: item.quantity,
-        price: parseFloat(item.price.replace(/[^0-9.-]+/g, '')),
-        size: item.size
-      }));
-
-      // guestName = firstName + lastName
-      const guestName = `${shippingData.firstName} ${shippingData.lastName}`.trim();
-
-      // Enviar todos los datos relevantes al backend
-      const checkoutData = {
-        items: orderItems,
-        shippingAddress,
-        paymentMethod: 'mercadopago',
-        guestEmail: shippingData.email,
-        guestName
-      };
-
-      // Crear orden en el backend
-      const response = await ordersAPI.checkoutComplete(checkoutData);
-
-      // El backend devuelve { order, preferenceId }
-      if (response.preferenceId) {
-        setPreferenceId(response.preferenceId);
-        setOrderId(response.order.id);
-      } else {
-        throw new Error('No se recibió preference ID del backend');
-      }
-    } catch (error: any) {
-      console.error('Error al crear la preferencia de pago:', error);
-      setError(error.response?.data?.message || 'Error al procesar el pago. Intentá de nuevo.');
-    } finally {
-      setLoading(false);
-    }
+    // Lógica original para crear preferencia en el backend.
   };
+  */
 
   return (
     <div className="space-y-6">
