@@ -1,4 +1,4 @@
-# Glitch — Frontend
+# Glitch - Frontend
 
 > E-commerce de indumentaria con autenticación JWT, panel de administración y carrito de compras. Desarrollado en React + TypeScript, desplegado en Vercel.
 
